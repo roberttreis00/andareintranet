@@ -1,7 +1,6 @@
 from django.utils.datastructures import MultiValueDictKeyError
 from .forms import SugestaoCompras
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from . import functions_compras
 from .tasks import atualizar_lista_produtos
@@ -99,6 +98,7 @@ class GerarSugestaoCompras(FormView):
 
 class GerarSugestaoProgramada(FormView):
     template_name = 'programada.html'
+    form_class = ...
 
 
 class GerarOrdemComprasTiny(FormView):
