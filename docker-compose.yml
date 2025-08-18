@@ -38,7 +38,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
     networks:
-      - andareintraner_network
+      - andareintranet_network
 
 networks:
   andareintranet_network:
