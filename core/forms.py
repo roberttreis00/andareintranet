@@ -54,3 +54,6 @@ class SugestaoCompras(forms.Form):
         return self.validar_arquivos_excel(
             self.cleaned_data['PlanilhaOrdemDeCompras'], 'Planilha Ordens de Compras', '.xls'
         )
+
+class SugestaoComprasProgramada(forms.Form):
+    ...
