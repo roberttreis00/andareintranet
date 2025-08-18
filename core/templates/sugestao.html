@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{%block title%}Sugestão Compras{%endblock%}
+
+{%block body%}
+    <h2 class="mb-4 text-center">Sugestão de Compras</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-primary w-10">Enviar</button>
+    </form>
+{%endblock%}

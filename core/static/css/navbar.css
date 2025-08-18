@@ -1,0 +1,18 @@
+body {
+    padding-bottom: 20px;
+}
+
+.navbar {
+    margin-bottom: 40px;
+    padding: 10px;
+}
+
+.nav-item {
+    padding: 15px;
+    font-size: 18px;
+}
+
+.mb-3{
+    padding: 2px;
+    font-weight: bold;
+}
