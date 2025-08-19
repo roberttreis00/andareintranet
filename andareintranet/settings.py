@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-jl)sy^#-zd&4#lq7^c^7w3oxtbhgnx0glb$gtgf)a1ug$@8$(c
 DEBUG = False
 
 # ALLOWED_HOSTS = ['*']
-ALLOWED_HOSTS = ['andareintranet.com', 'www.andareintranet.com', ''] # ou o dominio
+ALLOWED_HOSTS = ['andareintranet.com', 'www.andareintranet.com'] # ou o dominio
 
 # Application definition
 
