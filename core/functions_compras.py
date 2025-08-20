@@ -120,7 +120,9 @@ def gerar_sugestao_compras(estoque_full, saldo_tiny, relatorio_vendas, ordens_co
             marca_atual = marca.lower()
             relatorio_por_marca[marca_atual] = list()
         if str(marca) == 'nan':
-            if des != 'ENVIO FULL' or des != 'FULL SBS':
+            if des == 'ENVIO FULL' or des == 'FULL SBS':
+                continue
+            else:
                 relatorio_por_marca[marca_atual].append([sku, qtd])
 # ----------------------------------------------------------------------------------------------------------------------
     # Agora todos os dados em mãos juntar tudo no dict
