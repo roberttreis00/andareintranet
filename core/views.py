@@ -1,5 +1,5 @@
 from django.utils.datastructures import MultiValueDictKeyError
-from .forms import SugestaoCompras
+from .forms import SugestaoCompras, SugestaoComprasProgramada
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from . import functions_compras
@@ -95,11 +95,12 @@ class GerarSugestaoCompras(FormView):
         wb.save(response)
         return response
 
-
+# Gera a sugestão de compras programada é o mesmo que sugestão giro 1 2 3 meses só que tem 3 semestre de relatorio
+# de vendas para cálculos
 class GerarSugestaoProgramada(FormView):
     template_name = 'programada.html'
-    form_class = ...
-
+    form_class = SugestaoComprasProgramada
+    success_url = reverse_lazy("gerar-sugestao-programada")
 
 class GerarOrdemComprasTiny(FormView):
     template_name = 'ordem_compras.html'
