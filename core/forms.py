@@ -25,10 +25,17 @@ class SugestaoCompras(forms.Form):
 
     # Função para validar as extensões das planilhas enviadas se a extensão não for esperada
     # atualiza a pag e levanta um erro
-    def validar_arquivos_excel(self, file, nome_campo, extensao):
+    def validar_arquivos_excel(self, file, nome_campo, extensao, nome_esperado):
         if file is None and nome_campo == 'Planilha Ordens de Compras':
             return file
 
+        # verifica se o arquivo é o esperado com base no nome
+        if nome_esperado not in file.name:
+            raise forms.ValidationError(
+                f'O arquivo está no campo errado deve ser "{nome_esperado}"'
+            )
+
+        # Verifica se a extensão é a esperada
         if not file.name.endswith(extensao):
             raise forms.ValidationError(
                 f'O arquivo "{nome_campo}" deve estar no formato {extensao}'
@@ -37,22 +44,22 @@ class SugestaoCompras(forms.Form):
 
     def clean_PlanilhaEstoqueFull(self):
         return self.validar_arquivos_excel(
-            self.cleaned_data['PlanilhaEstoqueFull'], 'Planilha Estoque Full', '.xlsx'
+            self.cleaned_data['PlanilhaEstoqueFull'], 'Planilha Estoque Full', '.xlsx', 'stock_general_full'
         )
 
     def clean_PlanilhaSaldoTiny(self):
         return self.validar_arquivos_excel(
-            self.cleaned_data['PlanilhaSaldoTiny'], 'Planilha Saldo Tiny', '.xls'
+            self.cleaned_data['PlanilhaSaldoTiny'], 'Planilha Saldo Tiny', '.xls', 'saldos-em-estoque'
         )
 
     def clean_PlanilhaRelatorioDeVendas(self):
         return self.validar_arquivos_excel(
-            self.cleaned_data['PlanilhaRelatorioDeVendas'], 'Planilha Relatorio De Vendas', '.xls'
+            self.cleaned_data['PlanilhaRelatorioDeVendas'], 'Planilha Relatorio De Vendas', '.xls', 'relatorio-de-vendas'
         )
 
     def clean_PlanilhaOrdemDeCompras(self):
         return self.validar_arquivos_excel(
-            self.cleaned_data['PlanilhaOrdemDeCompras'], 'Planilha Ordens de Compras', '.xls'
+            self.cleaned_data['PlanilhaOrdemDeCompras'], 'Planilha Ordens de Compras', '.xls', 'pedidos_compra'
         )
 
 class SugestaoComprasProgramada(forms.Form):
