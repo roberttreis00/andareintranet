@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
 {%block title%}Compras Programada{%endblock%}
 
 {%block body%}
-    <h2 class="mb-4 text-center">Sugestão de Compras Semestral</h2>
+    <h2 class="mb-4 text-center">Sugestão de Compras Programada Semestral</h2>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form|crispy }}

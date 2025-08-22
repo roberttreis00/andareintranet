@@ -1,5 +1,5 @@
 from django.utils.datastructures import MultiValueDictKeyError
-from .forms import SugestaoCompras, SugestaoComprasProgramada
+from .forms import SugestaoCompras, SugestaoComprasProgramada, GerarOrdemDeCompra
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from . import functions_compras
@@ -95,6 +95,7 @@ class GerarSugestaoCompras(FormView):
         wb.save(response)
         return response
 
+
 # Gera a sugestão de compras programada é o mesmo que sugestão giro 1 2 3 meses só que tem 3 semestre de relatorio
 # de vendas para cálculos
 class GerarSugestaoProgramada(FormView):
@@ -102,5 +103,65 @@ class GerarSugestaoProgramada(FormView):
     form_class = SugestaoComprasProgramada
     success_url = reverse_lazy("gerar-sugestao-programada")
 
+    # Agora tratar os dados fazer o mesmo só que agora com duas colunas a mais s
+    def form_valid(self, form):
+        workbook_estoque_full = self.request.FILES['PlanilhaEstoqueFull']
+        workbook_estoque_tiny = self.request.FILES['PlanilhaSaldoTiny']
+        workbook_relatorio_1 = self.request.FILES['PlanilhaRelatorioDeVendas1']
+        workbook_relatorio_2 = self.request.FILES['PlanilhaRelatorioDeVendas2']
+        workbook_relatorio_3 = self.request.FILES['PlanilhaRelatorioDeVendasSemestreAtual']
+
+        try:
+            workbook_ordens_de_compra = self.request.FILES['PlanilhaOrdemDeCompras']
+        except MultiValueDictKeyError:
+            workbook_ordens_de_compra = None
+        marca_giro = form.cleaned_data['Marca']
+
+        # Segue o fluxo normal agora trata os dados das planilhas e return a Sugestão de Compras Programada sem precisar
+        # Acrescentar novas marcas caso tenha deixa para o Giro
+        df_compras_crescimento = functions_compras.gerar_sugestao_compras_programada(workbook_estoque_full,
+                                                                                     workbook_estoque_tiny,
+                                                                                     workbook_relatorio_1,
+                                                                                     workbook_relatorio_2,
+                                                                                     workbook_relatorio_3,
+                                                                                     workbook_ordens_de_compra,
+                                                                                     marca_giro)
+
+        df_compras = df_compras_crescimento[0]
+        crescimento = df_compras_crescimento[1]
+
+        # Agora com o DataFrame em mãos acrescentar as colunas e retorna o giro programado
+        # Acrescentar duas colunas df_win
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = 'Sugestão de Compras Semestral'
+        ws.append(list(df_compras.columns) + ['Desvio'])
+
+        for idx, row in df_compras.iterrows():
+            ws.append(
+                [row["SKU_Seller"], row["Estoque Geral"], row["Estoque Full"], row["Estoque Comprado"],
+                 row["Saídas 1° Semestre"], row['Saídas 2° Semestre'], row['Saídas Semestre Atual'],
+                 row["Sugestão de Compras"], row['Ajuste Comprador'], ""])  # Duas colunas extras vazias
+
+        for row_idx in range(2, len(df_compras) + 2):  # Começa na linha 2 (1 é cabeçalho)
+            ws[f"J{row_idx}"].value = (
+                f'=IF(I{row_idx}="","",'
+                f'IF(I{row_idx}=G{row_idx},"",'
+                f'IF(AND(H{row_idx}<0,I{row_idx}=0),"",'
+                f'IF(I{row_idx}>H{row_idx},"ALTERADO",IF(I{row_idx}<H{row_idx},"ALTERADO","")))))'
+            )
+
+        # Agora juntar os dois DF em um só
+        # Return response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="sugestão_compras_{marca_giro}_{crescimento}%.xlsx"'
+        wb.save(response)
+        return response
+
+
 class GerarOrdemComprasTiny(FormView):
     template_name = 'ordem_compras.html'
+    form_class = GerarOrdemDeCompra
+    success_url = reverse_lazy("gerar-ordem-de-compra-tiny")
