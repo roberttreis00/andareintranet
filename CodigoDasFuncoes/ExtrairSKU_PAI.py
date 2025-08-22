@@ -34,3 +34,12 @@ def extrair_sku_pai(sku_filho):
     return sku_agrupador
 
 # Nova forma de extrair agrupador dos skus:
+"""
+Temos esses tipos de SKU:
+4841103 4841103CINZA34 = SKU PAI | COR ESCRITA "CINZA" | TAMANHO
+ARMPC224 ARMPC224ARAMIS38 = SKUS PAI | MARCA | TAMANHO
+18530 R18530CAE037T33E34 = LETRA R | SKU PAI | COR LETRAS E NÚMEROS | A LETRA T E TAMANHO
+1319 R1319258C003T35E36 = LETRA R | SKU PAI | CODIGO | COR C003 | A LETRA T TAMANHO
+"""
+
+print(extrair_sku_pai(''))

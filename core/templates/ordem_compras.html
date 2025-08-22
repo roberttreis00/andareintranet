@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
-{%block title%}Gerar Ordem de Compras{%endblock%}
+{%block title%}Gerar ordem de compra{%endblock%}
 
 {%block body%}
-
+    <h2 class="mb-4 text-center">Gerar Ordem de Compra</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <h1> Em desenvolvimento </h1>
+        <button type="submit" class="btn btn-primary w-10">Gerar</button>
+    </form>
 {%endblock%}
