@@ -80,7 +80,7 @@ def tratar_sugestao_de_compras(self, file_id):
 
         sk_us = sugestao_compras_excel.iloc[0:, 0]
 
-        if task_instance.situacao_compra == 'Giro':
+        if task_instance.situacao_compra == "1":
             sugestao_compras = sugestao_compras_excel.iloc[:, 5]
             ajuste_comprador = sugestao_compras_excel.iloc[:, 6]
         else:
