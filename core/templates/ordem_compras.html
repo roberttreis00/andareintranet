@@ -18,7 +18,7 @@
         <ul id="task-list">
             {% for task in tasks %}
             <li data-task-id="{{ task.id }}"> {# Adicionado atributo data-task-id #}
-                Sugestão #{{ task.workbook.name }} - Status: <span id="status-{{ task.id }}"
+                Sugestão #{{ task.Workbook.name }} - Status: <span id="status-{{ task.id }}"
                                                                    class="status-{{ task.status }}">{{ task.status }}</span>
                 {% if task.status == 'Completo' and task.output_file %}
                 <a href="{% url 'download_file' task.id %}" target="_blank">Download Disponível</a>
