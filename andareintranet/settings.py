@@ -23,13 +23,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-jl)sy^#-zd&4#lq7^c^7w3oxtbhgnx0glb$gtgf)a1ug$@8$(c'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-<<<<<<< HEAD
 DEBUG = True
 # DEBUG = False
-=======
-#DEBUG = True
-DEBUG = False
->>>>>>> 55cdca6 (Banco ativos)
 
 # ALLOWED_HOSTS = ['*']
 ALLOWED_HOSTS = ['andareintranet.com', 'www.andareintranet.com'] # ou o dominio
