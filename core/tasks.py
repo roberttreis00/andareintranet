@@ -109,7 +109,7 @@ def tratar_sugestao_de_compras(self, file_id):
             work_new_compras['ID'].append('')
             work_new_compras['DATA'].append(data_atual)
             work_new_compras['ID contato'].append('')
-            work_new_compras['Nome do contato'].append(task_instance.Fornecedor)
+            work_new_compras['Nome do contato'].append(task_instance.fornecedor)
             work_new_compras['Desconto'].append('')
             work_new_compras['Observações'].append('')
             work_new_compras['Situação'].append('Em Aberto')
