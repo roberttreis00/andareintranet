@@ -148,3 +148,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
+
+# Segurança
+
+# SECURE_SSL_REDIRECT = True  # Vai permitir só HTTPs

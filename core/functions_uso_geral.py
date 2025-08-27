@@ -104,3 +104,15 @@ def agrupar_vendas_por_marca_lista_vendas(relatorio, marca_giro):
                 relatorio_por_marca[marca_atual].append([sku, qtd])
 
     return relatorio_por_marca[marca_giro]
+
+def consultar_sku(sku):
+    params = {
+        'token': TOKEN,
+        'formato': 'json',
+        'pesquisa': sku,
+    }
+
+    response = requests.get(url_api, params=params, stream=True)
+    # print(response.status_code)
+    produto = response.json()['retorno']['produtos'][0]['produto']
+    return produto

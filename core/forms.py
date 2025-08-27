@@ -8,6 +8,11 @@ opcoes = [
     ('3', '3 meses'),
 ]
 
+opcoes2 = [
+    ('1', 'Giro'),
+    ('2', 'Programada'),
+]
+
 # logo_mercado_e_full = ('<img src="/static/images/logoML.png" style="height:20px; vertical-align:middle; margin-right:5px;">'
 #                        '<img src="/static/images/logoFull.png" style="height:20px; vertical-align:middle; margin-right:5px;">')
 
@@ -125,4 +130,6 @@ class SugestaoComprasProgramada(forms.Form):
         )
 
 class GerarOrdemDeCompra(forms.Form):
-    ...
+    PlanilhaSugestaoCompras = forms.FileField(label='Planilha Sugestão de Compras')
+    Fornecedor = forms.CharField(max_length=30, label='Fornecedor')
+    Tipo_Giro_Compras = forms.ChoiceField(choices=opcoes2, widget=forms.Select, label='Tipo de Compras')
