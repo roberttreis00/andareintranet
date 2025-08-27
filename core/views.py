@@ -1,5 +1,5 @@
 from django.utils.datastructures import MultiValueDictKeyError
-from .forms import SugestaoCompras, SugestaoComprasProgramada, GerarOrdemDeCompra
+from .forms import SugestaoCompras, SugestaoComprasProgramada, GetSugestaoCompras
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from . import functions_compras
@@ -165,22 +165,22 @@ class GerarSugestaoProgramada(FormView):
         return response
 
 
-class GerarOrdemComprasTiny(FormView):
-    template_name = 'ordem_compras.html'
-    form_class = GerarOrdemDeCompra
-    success_url = reverse_lazy("gerar-ordem-de-compra-tiny")
+class GerarOrdemDeCompra(FormView):
+    template_name = 'ordem_compras.html.html'
+    form_class = GetSugestaoCompras
+    success_url = reverse_lazy('gerar-ordem-de-compra-tiny')
 
     def form_valid(self, form):
         upload_file = form.cleaned_data['PlanilhaSugestaoCompras']
         fornecedor = form.cleaned_data['Fornecedor']
-        tipo_giro_compras = form.cleaned_data['Tipo_Giro_Compras']
+        situacao = form.cleaned_data['Situacao_compra']
 
         # 1. Criar uma instancia no banco
         # 2. Chama a tarefa com tarefa.delay(task_instance.id)
         task_instance = ArquivosProcessados.objects.create(
-            workbook=upload_file,
-            fornecedor=fornecedor,
-            tipo_giro_compras=tipo_giro_compras,  # situação giro ou programação
+            Workbook=upload_file,
+            Fornecedor=fornecedor,
+            situacao_compra=situacao,  # situação giro ou programação
             status='Pendente',
         )
 

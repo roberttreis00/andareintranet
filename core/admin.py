@@ -12,4 +12,4 @@ class ProdutosCadastradosAdmin(admin.ModelAdmin):
 
 @admin.register(models.ArquivosProcessados)
 class ArquivosProcessadosAdmin(admin.ModelAdmin):
-    list_display = ['workbook', 'output_file', 'status']
+    list_display = ['Workbook', 'output_file', 'status']

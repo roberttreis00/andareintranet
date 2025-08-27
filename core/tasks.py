@@ -55,7 +55,7 @@ def tratar_sugestao_de_compras(self, file_id):
         task_instance.task_id = self.request.id
         task_instance.save()
 
-        if not task_instance.workbook:
+        if not task_instance.Workbook:
             raise FileNotFoundError('Workbook não encontrado para processamento.')
 
         ordem_compra = "".join([str(randint(0, 9)) for x in range(0, 9)])
@@ -76,11 +76,11 @@ def tratar_sugestao_de_compras(self, file_id):
             'Código (SKU)': [],
         }
 
-        sugestao_compras_excel = pd.read_excel(task_instance.workbook)
+        sugestao_compras_excel = pd.read_excel(task_instance.Workbook)
 
         sk_us = sugestao_compras_excel.iloc[0:, 0]
 
-        if task_instance.tipo_giro_compras == 'Giro':
+        if task_instance.situacao_compra == 'Giro':
             sugestao_compras = sugestao_compras_excel.iloc[:, 5]
             ajuste_comprador = sugestao_compras_excel.iloc[:, 6]
         else:
@@ -109,7 +109,7 @@ def tratar_sugestao_de_compras(self, file_id):
             work_new_compras['ID'].append('')
             work_new_compras['DATA'].append(data_atual)
             work_new_compras['ID contato'].append('')
-            work_new_compras['Nome do contato'].append(task_instance.fornecedor)
+            work_new_compras['Nome do contato'].append(task_instance.Fornecedor)
             work_new_compras['Desconto'].append('')
             work_new_compras['Observações'].append('')
             work_new_compras['Situação'].append('Em Aberto')
@@ -123,7 +123,7 @@ def tratar_sugestao_de_compras(self, file_id):
             sleep(0.6)
 
         df_processado = pd.DataFrame(work_new_compras)
-        original_filename_base, original_filename_ext = os.path.splitext(task_instance.workbook.name)
+        original_filename_base, original_filename_ext = os.path.splitext(task_instance.Workbook.name)
         output_filename = f"processed_{os.path.basename(original_filename_base)}_{task_instance.id}.xlsx"
 
         # Cria um caminho temporário para salvar o arquivo processado antes de salvá-lo no FileField

@@ -129,7 +129,7 @@ class SugestaoComprasProgramada(forms.Form):
             self.cleaned_data['PlanilhaOrdemDeCompras'], 'Planilha Ordens de Compras', '.xls', 'pedidos_compra'
         )
 
-class GerarOrdemDeCompra(forms.Form):
-    PlanilhaSugestaoCompras = forms.FileField(label='Planilha Sugestão de Compras')
-    Fornecedor = forms.CharField(max_length=30, label='Fornecedor')
-    Tipo_Giro_Compras = forms.ChoiceField(choices=opcoes2, widget=forms.Select, label='Tipo de Compras')
+class GetSugestaoCompras(forms.Form):
+    PlanilhaSugestaoCompras = forms.FileField(label='Planilha Sugestão Compra')
+    Fornecedor = forms.CharField(max_length=50, label='Fornecedor')
+    Situacao_compra = forms.ChoiceField(choices=opcoes2, widget=forms.Select, label='Situação da Compra')
