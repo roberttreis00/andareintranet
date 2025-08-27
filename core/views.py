@@ -166,7 +166,7 @@ class GerarSugestaoProgramada(FormView):
 
 
 class GerarOrdemDeCompra(FormView):
-    template_name = 'ordem_compras.html.html'
+    template_name = 'ordem_compras.html'
     form_class = GetSugestaoCompras
     success_url = reverse_lazy('gerar-ordem-de-compra-tiny')
 
