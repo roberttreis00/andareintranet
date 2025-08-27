@@ -26,8 +26,8 @@ SECRET_KEY = 'django-insecure-jl)sy^#-zd&4#lq7^c^7w3oxtbhgnx0glb$gtgf)a1ug$@8$(c
 DEBUG = True
 # DEBUG = False
 
-# ALLOWED_HOSTS = ['*']
-ALLOWED_HOSTS = ['andareintranet.com', 'www.andareintranet.com'] # ou o dominio
+ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['andareintranet.com', 'www.andareintranet.com'] # ou o dominio
 
 # Application definition
 
@@ -132,7 +132,7 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Configuração do REDIS
 REDIS_HOST = os.getenv('REDIS_HOST', 'redis')

@@ -160,7 +160,7 @@ class GerarSugestaoProgramada(FormView):
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-        response['Content-Disposition'] = f'attachment; filename="sugestão_compras_{marca_giro}_{crescimento}%.xlsx"'
+        response['Content-Disposition'] = f'attachment; filename="sugestao_compras_{marca_giro}_{crescimento}%.xlsx"'
         wb.save(response)
         return response
 
