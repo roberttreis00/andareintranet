@@ -178,8 +178,8 @@ class GerarOrdemComprasTiny(FormView):
         # 1. Criar uma instancia no banco
         # 2. Chama a tarefa com tarefa.delay(task_instance.id)
         task_instance = ArquivosProcessados.objects.create(
-            Workbook=upload_file,
-            Fornecedor=fornecedor,
+            workbook=upload_file,
+            fornecedor=fornecedor,
             tipo_giro_compras=tipo_giro_compras,  # situação giro ou programação
             status='Pendente',
         )
