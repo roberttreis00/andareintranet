@@ -17,3 +17,27 @@ class ProdutosCadastradosTiny(models.Model):
 
     def __str__(self):
         return self.Nome_Lista_Produtos
+
+class ArquivosProcessados(models.Model):
+    status_choices = [
+        ('Pendente', 'Pendente'),
+        ('Processando', 'Processando'),
+        ('Completo', 'Completo'),
+        ('Falha', 'Falha'),
+    ]
+
+    workbook = models.FileField(upload_to='uploaded_files/')
+    fornecedor = models.CharField(max_length=50)
+    tipo_giro_compras = models.CharField(max_length=50)
+
+    output_file = models.FileField(upload_to='processed_outputs/', null=True, blank=True)
+    task_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    status = models.CharField(max_length=50, choices=status_choices, default='Pendente')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Tarefa {self.id} - Arquivo: {self.workbook.name} - Status: {self.status}"
+
+    class Meta:
+        verbose_name = "Arquivo Processado"
+        verbose_name_plural = "Arquivos Processados"

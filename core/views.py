@@ -3,8 +3,12 @@ from .forms import SugestaoCompras, SugestaoComprasProgramada, GerarOrdemDeCompr
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from . import functions_compras
-from .tasks import atualizar_lista_produtos
-from .models import ProdutosCadastradosTiny
+from django.views import View
+from django.shortcuts import get_object_or_404
+import os
+from django.http import JsonResponse
+from .tasks import atualizar_lista_produtos, tratar_sugestao_de_compras
+from .models import ProdutosCadastradosTiny, ArquivosProcessados
 from datetime import datetime, timezone
 from django.http import HttpResponse
 import openpyxl
@@ -165,3 +169,53 @@ class GerarOrdemComprasTiny(FormView):
     template_name = 'ordem_compras.html'
     form_class = GerarOrdemDeCompra
     success_url = reverse_lazy("gerar-ordem-de-compra-tiny")
+
+    def form_valid(self, form):
+        upload_file = form.cleaned_data['PlanilhaSugestaoCompras']
+        fornecedor = form.cleaned_data['Fornecedor']
+        tipo_giro_compras = form.cleaned_data['Tipo_Giro_Compras']
+
+        # 1. Criar uma instancia no banco
+        # 2. Chama a tarefa com tarefa.delay(task_instance.id)
+        task_instance = ArquivosProcessados.objects.create(
+            Workbook=upload_file,
+            Fornecedor=fornecedor,
+            tipo_giro_compras=tipo_giro_compras,  # situação giro ou programação
+            status='Pendente',
+        )
+
+        # disparar a tarefa no Celery
+        tratar_sugestao_de_compras.delay(task_instance.id)
+
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Exibe as últimas 10 tarefas para o usuário
+        context['tasks'] = ArquivosProcessados.objects.order_by('-created_at')[:1]
+        return context
+
+
+class TaskStatusView(View):
+    def get(self, request, task_id):
+        task = get_object_or_404(ArquivosProcessados, id=task_id)
+        data = {
+            'status': task.status,
+            'output_file_url': task.output_file.url if task.output_file else None
+        }
+        return JsonResponse(data)
+
+
+class DownloadFileView(View):
+
+    def get(self, request, task_id):
+        task = get_object_or_404(ArquivosProcessados, id=task_id)
+        if task.status == 'Completo' and task.output_file:
+            file_path = task.output_file.path
+            if os.path.exists(file_path):
+                with open(file_path, 'rb') as fh:
+                    response = HttpResponse(fh.read(),
+                                            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")  # MIME type para .xlsx
+                    response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_path)
+                    return response
+        return HttpResponse("Arquivo não encontrado ou tarefa não concluída.", status=404)

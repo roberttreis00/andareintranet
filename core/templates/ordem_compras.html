@@ -4,11 +4,30 @@
 {%block title%}Gerar ordem de compra{%endblock%}
 
 {%block body%}
-    <h2 class="mb-4 text-center">Gerar Ordem de Compra</h2>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <h1> Em desenvolvimento </h1>
-        <button type="submit" class="btn btn-primary w-10">Gerar</button>
-    </form>
+<h2 class="mb-4 text-center">Gerar Ordem de Compra</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-primary w-10">Gerar</button>
+</form>
+{%endblock%}
+
+{%block block2%}
+<div class="container d-flex justify-content-center align-items-center">
+    <div class="card shadow p-4" style="max-width: 550px; width: 100%;">
+        <ul id="task-list">
+            {% for task in tasks %}
+            <li data-task-id="{{ task.id }}"> {# Adicionado atributo data-task-id #}
+                Sugestão #{{ task.workbook.name }} - Status: <span id="status-{{ task.id }}"
+                                                                   class="status-{{ task.status }}">{{ task.status }}</span>
+                {% if task.status == 'Completo' and task.output_file %}
+                <a href="{% url 'download_file' task.id %}" target="_blank">Download Disponível</a>
+                {% endif %}
+            </li>
+            {% empty %}
+            <li>Nenhuma sugestão recente.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
 {%endblock%}
