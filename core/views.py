@@ -171,7 +171,7 @@ class GerarOrdemComprasTiny(FormView):
     success_url = reverse_lazy("gerar-ordem-de-compra-tiny")
 
     def form_valid(self, form):
-        upload_file = form.cleaned_data['PlanilhaSugestaoCompras']
+        upload_file = self.request.FILES['PlanilhaSugestaoCompras']
         fornecedor = form.cleaned_data['Fornecedor']
         tipo_giro_compras = form.cleaned_data['Tipo_Giro_Compras']
 

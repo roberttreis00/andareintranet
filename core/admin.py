@@ -9,3 +9,7 @@ class MarcaAdmin(admin.ModelAdmin):
 @admin.register(models.ProdutosCadastradosTiny)
 class ProdutosCadastradosAdmin(admin.ModelAdmin):
     list_display = ['Nome_Lista_Produtos', 'Data_ultima_atualizacao']
+
+@admin.register(models.ArquivosProcessados)
+class ArquivosProcessadosAdmin(admin.ModelAdmin):
+    list_display = ['workbook', 'output_file', 'status']
