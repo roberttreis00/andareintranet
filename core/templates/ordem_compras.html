@@ -4,12 +4,16 @@
 {%block title%}Gerar ordem de compra{%endblock%}
 
 {%block body%}
-<h2 class="mb-4 text-center">Gerar Ordem de Compra</h2>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form|crispy }}
-    <button type="submit" class="btn btn-primary w-10">Gerar</button>
-</form>
+<div class="container d-flex justify-content-center align-items-center">
+    <div class="card shadow p-4" style="max-width: 550px; width: 100%;">
+        <h2 class="mb-4 text-center">Gerar Ordem de Compra</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" class="btn btn-primary w-10">Gerar</button>
+        </form>
+    </div>
+</div>
 {%endblock%}
 
 {%block block2%}

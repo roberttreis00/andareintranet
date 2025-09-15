@@ -133,3 +133,33 @@ class GetSugestaoCompras(forms.Form):
     PlanilhaSugestaoCompras = forms.FileField(label='Planilha Sugestão Compra')
     Fornecedor = forms.CharField(max_length=50, label='Fornecedor')
     Situacao_compra = forms.ChoiceField(choices=opcoes2, widget=forms.Select, label='Situação da Compra')
+
+opcoes3 = [
+    ('1', 'Em aberto'),
+    ('2', 'Aprovado'),
+    ('3', 'Preparando envio'),
+    ('4', 'Faturado'),
+    ('5', 'Pronto para envio'),
+    ('6', 'Enviado'),
+    ('7', 'Entregue'),
+    ('8', 'Não Entregue'),
+    ('9', 'Dados incompletos'),
+    ('10', 'Cancelado'),
+]
+
+class FiltroDataForm(forms.Form):
+    data_inicio = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    data_fim = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    # Pega todas as marcas do banco
+    marcas = [(m.id, m.nome_marca) for m in Marca.objects.all()]
+
+    # Adiciona a opção extra no início
+    marcas = [('Todas', 'Todas')] + marcas
+
+    Marca = forms.ChoiceField(choices=marcas, label='Marca')

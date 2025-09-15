@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{%block title%}Dashboard{%endblock%}
+{%block body%}
+<form method="post" class="row g-3 justify-content-center">
+    {% csrf_token %}
+    <div class="col-auto">
+        <label for="id_data_inicio" class="form-label">Data Início</label>
+        {{ form.data_inicio }}
+    </div>
+    <div class="col-auto">
+        <label for="id_data_fim" class="form-label">Data Fim</label>
+        {{ form.data_fim }}
+    </div>
+    <div class="col-auto">
+        <label>Marca</label>
+        {{ form.Marca }}
+    </div>
+    <div class="col-auto align-self-end">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+    </div>
+    <!-- Quadrado de pedidos -->
+</form>
+
+<canvas id="meuGrafico"></canvas>
+
+<script>
+    const ctx = document.getElementById('meuGrafico').getContext('2d');
+
+    const cores = [
+        'rgba(255, 99, 132, 0.6)',   // rosa suave
+        'rgba(54, 162, 235, 0.6)',   // azul pastel
+        'rgba(255, 206, 86, 0.6)',   // amarelo claro
+        'rgba(75, 192, 192, 0.6)',   // verde água
+        'rgba(153, 102, 255, 0.6)',  // lilás suave
+        'rgba(255, 159, 64, 0.6)'    // laranja pastel
+    ];
+
+    const meuGrafico = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: {{ marketplace|safe }},
+            datasets: [{
+                label: 'Faturamento',
+                data: {{ qtd_por_mkt|safe }},
+                backgroundColor: cores,
+                borderColor: 'white',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                },
+                title: {
+                    display: true,
+                    text: 'Faturamento por Marketplace'
+                }
+            }
+        }
+    });
+</script>
+
+<div class="card-pedidos">
+    <h2>Pedidos</h2>
+    {%if qtd_pedidos%}
+    <p>{{ qtd_pedidos }}</p>
+    {%else%}
+    <p>0</p>
+    {%endif%}
+</div>
+<div class="card-pedidos">
+    <h2>Faturamento</h2>
+    {%if qtd_pedidos%}
+    <p>R${{ faturamento }}</p>
+    {%else%}
+    <p>R$0</p>
+    {%endif%}
+</div>
+<div class="card-pedidos">
+    <h2>Ticket médio</h2>
+    {%if qtd_pedidos%}
+    <p>R${{ ticket_medio }}</p>
+    {%else%}
+    <p>R$0</p>
+    {%endif%}
+</div>
+
+{%endblock%}

@@ -20,3 +20,44 @@ body {
 .card{
     margin-bottom: 70px;
 }
+/* Container do gráfico */
+#meuGrafico {
+    width: 400px;   /* largura menor */
+    height: 400px;  /* altura menor */
+    margin: 20px auto; /* centralizado horizontalmente */
+    left: 50px;
+}
+
+/* Cards de pedidos/faturamento/ticket médio */
+.card-pedidos {
+    display: inline-block;
+    width: 200px;           /* tamanho menor do card */
+    padding: 15px;
+    margin: 10px;
+    border: 2px solid #000; /* borda preta */
+    border-radius: 12px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+    text-align: center;
+    background-color: #fff;
+}
+
+.card-pedidos h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.card-pedidos p {
+    font-size: 24px;  /* número maior */
+    font-weight: bold;
+    margin: 0;
+    color: #008000;
+}
+
+/* Opcional: centralizar todos os cards e o gráfico juntos */
+.dashboard-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+}
