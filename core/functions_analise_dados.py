@@ -4,26 +4,26 @@ from django.db import IntegrityError
 from celery import shared_task
 import requests
 from datetime import datetime, timedelta
+from django.db.models import Sum
 
 token = "4d907ba2ee45f9e572b9a774badf06f6abde0ae8869c594cb948040ffb4a0544"
-tempo_espera_get = 2  # Tempo de espera até realizar outra requisição
+tempo_espera_get = 2  # Tempo de espera até realizar outra requisição ideal da 30 por minuto
 
 
 # São 120 Consultados por minutos então uma consulta a cada 0.5 segundos parece que isso na teoria
 
 def descobrir_marca_sku(sku_filho):
-    produtos = ProdutosCadastradosTiny.objects.get(Nome_Lista_Produtos='Produtos Ativos').Lista_Produtos
-    for marca, skus in produtos.items():
-        if sku_filho in skus:
-            return marca
-
-    return None
+    try:
+        marca = ProdutosAtivosTiny.objects.get(sku=sku_filho).marca
+        return marca.lower()
+    except ProdutosAtivosTiny.DoesNotExist:
+        return None
 
 
 # Salvar skus filho no banco de dados
 @shared_task(bind=True)
 def salvar_skus_filho(self):
-    produtos = ProdutosCadastradosTiny.objects.get(Nome_Lista_Produtos='Produtos Ativos').Lista_Produtos
+    produtos = ProdutosCadastradosTiny.objects.get(Nome_Lista_Produtos='Produtos Ativos+Excluidos').Lista_Produtos
     for marca, sku_filho in produtos.items():
         for sku in sku_filho:
             try:
@@ -135,49 +135,48 @@ def atualizar_pedidos_do_dia(dia, mes, ano):  # executar todos os dias pega pedi
     # mes = data_atual_menos_1day[1]
     # ano = data_atual_menos_1day[2]
 
-    pedidos = obter_pedidos_do_dia(dia, mes, ano)
+    pedidos = obter_pedidos_do_dia(dia, mes, ano)  # obtem os pedidos do dia desejado
     pedidos_do_dia_zip = zip(pedidos["id"], pedidos["data_pedido"], pedidos["valor"], pedidos["situacao"])
-
+    print('Quantidade de pedidos', len(pedidos))
     for aid, data_pedido, valor, situacao in pedidos_do_dia_zip:
         # Verificar se o pedido já tem no banco de dados
-        try:
-            Pedidos.objects.get(id_tiny=aid)  # Aqui quer dizer que já tem
+        if Pedidos.objects.filter(id_tiny=aid):  # Aqui quer dizer que já tem
             continue
-        except Pedidos.DoesNotExist:
-            pass
 
         try:
             skus_mkts = obter_informacoes_pedido(aid)  # Pega o marketplace e os skus vendidos
+            for sku, valor_venda in zip(skus_mkts[1], skus_mkts[3]):
+                instance = Pedidos()
 
-            instance = Pedidos()
+                instance.id_tiny = aid
+                if len(skus_mkts) > 1:
+                    instance.valor_total = float(valor_venda)
+                else:
+                    instance.valor_total = valor
+                instance.situacao = situacao
+                instance.data_pedido = datetime.strptime(data_pedido, "%d/%m/%Y").date()
+                # Consultar SKUS Vendidos e Marketplace do PD
 
-            instance.id_tiny = aid
-            instance.valor_total = valor
-            instance.situacao = situacao
-            instance.data_pedido = datetime.strptime(data_pedido, "%d/%m/%Y").date()
-            # Consultar SKUS Vendidos e Marketplace do PD
+                sleep(tempo_espera_get)
+                instance.marketplace = skus_mkts[0]
+                instance.save()
 
-            sleep(tempo_espera_get)
-            instance.marketplace = skus_mkts[0]
-            # Adiciona os valores unicos dos pedidos
-            instance.valores = skus_mkts[3]
-            instance.save()
+                # Verificar se o SKU se está no banco de dados se não estiver salvar, só depois continuar
+                for sku_vendido, aid_produto in zip(skus_mkts[1], skus_mkts[2]):
+                    try:
+                        ProdutosAtivosTiny.objects.get(sku=sku_vendido)
+                    except ProdutosAtivosTiny.DoesNotExist:
+                        instance2 = ProdutosAtivosTiny()
+                        dados_pedido = descobrir_marca_sku_por_api(aid_produto)
 
-            # Verificar se o SKU se está no banco de dados se não estiver salvar, só depois continuar
-            for sku_vendido, aid_produto in zip(skus_mkts[1], skus_mkts[2]):
-                try:
-                    ProdutosAtivosTiny.objects.get(sku=sku_vendido)
-                except ProdutosAtivosTiny.DoesNotExist:
-                    instance2 = ProdutosAtivosTiny()
-                    dados_pedido = descobrir_marca_sku_por_api(aid_produto)
+                        instance2.sku = dados_pedido[0]
+                        instance2.marca = dados_pedido[1]
+                        instance2.save()
 
-                    instance2.sku = dados_pedido[0]
-                    instance2.marca = dados_pedido[1]
-                    instance2.save()
-
-            # Adiciona os SKUS
-            produtos = ProdutosAtivosTiny.objects.filter(sku__in=skus_mkts[1])
-            instance.skus_vendidos.add(*produtos)  # Dessa forma adiciona todos skus
+                # Adiciona os SKUS
+                instance.marca = Marca.objects.filter(nome_marca=descobrir_marca_sku(sku)).first()
+                instance.sku_vendido = ProdutosAtivosTiny.objects.filter(sku=sku).first()
+                instance.save()
         except KeyError:
             continue  # Quando o pedido não é de nenhum ecommerce
         # Salvar no banco de dados, com todas as informações em mãos
@@ -215,23 +214,27 @@ def objeto_filtrado(data_inicio, data_fim):
     return pedidos_do_dia
 
 
-def filtrar_pedidos_por_marca(data_inicio, data_fim, marca):
-    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim)
-    marcas = {marca.nome_marca: [] for marca in Marca.objects.all()}
-    # Pega pedido por pedido descobre a marca colocar na lista
-
-    descobrir_marca_sku()
-
-
 def quantidade_vendas_do_periodo(data_inicio, data_fim, marca):
-    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca)
-    return len(pedidos_do_dia)
-
-
-def faturamento_total(data_inicio, data_fim):
     pedidos_do_dia = objeto_filtrado(data_inicio, data_fim)
-    faturamento = sum([pedidos.valor_total for pedidos in pedidos_do_dia])
-    return round(faturamento, 2)
+    if marca == "Todas":
+        return len(pedidos_do_dia)
+    else:
+        marca_especifica = Marca.objects.get(nome_marca=marca)
+        pedidos_do_dia_por_marca = pedidos_do_dia.filter(marca=marca_especifica).values_list('id_tiny')
+        return len(pedidos_do_dia_por_marca)
+
+
+def faturamento_total(data_inicio, data_fim, marca):
+    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim)
+
+    if marca == "Todas":
+        faturamento = sum([pedido.valor_total for pedido in pedidos_do_dia])
+        return round(faturamento, 2)
+    else:
+        marca_especifica = Marca.objects.get(nome_marca=marca)
+        pedidos_do_dia_por_marca = pedidos_do_dia.filter(marca=marca_especifica)
+        faturamento = sum([pedido.valor_total for pedido in pedidos_do_dia_por_marca])
+        return round(faturamento, 2)
 
 
 def faturamento_por_marketplace(data_inicio, data_fim):

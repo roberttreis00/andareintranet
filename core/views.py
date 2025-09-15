@@ -243,18 +243,18 @@ class DashboardAndare(FormView):
 
         # Agora podemos calcular os dados
         qtd_pedidos = functions_analise_dados.quantidade_vendas_do_periodo(data_inicio, data_fim, marca)
-        faturamento = functions_analise_dados.faturamento_total(data_inicio, data_fim)
+        faturamento = functions_analise_dados.faturamento_total(data_inicio, data_fim, marca)
         ticket_medio = round(faturamento / qtd_pedidos, 2) if qtd_pedidos else 0
         faturamento_mkt = functions_analise_dados.faturamento_por_marketplace(data_inicio, data_fim)
 
-        context = self.get_context_data(form=form)
-        context.update({
-            "data_inicio": data_inicio,
-            "data_fim": data_fim,
-            "qtd_pedidos": qtd_pedidos,
-            "faturamento": faturamento,
-            "ticket_medio": ticket_medio,
-            "marketplace": list(faturamento_mkt.keys()),
-            "qtd_por_mkt": list(faturamento_mkt.values()),
-        })
+        context = self.get_context_data(
+            form=form,
+            data_inicio=data_inicio,
+            data_fim=data_fim,
+            qtd_pedidos=qtd_pedidos,
+            faturamento=f"{faturamento:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
+            ticket_medio=ticket_medio,
+            marketplace=list(faturamento_mkt.keys()),
+            qtd_por_mkt=list(faturamento_mkt.values()),
+        )
         return self.render_to_response(context)

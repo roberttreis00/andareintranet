@@ -53,20 +53,13 @@ class ProdutosAtivosTiny(models.Model):
         return self.sku
 
 class Pedidos(models.Model):
-    id_tiny = models.CharField(max_length=9, unique=True)  # Com esse id consigo consultar os skus que vendeu
+    id_tiny = models.CharField(max_length=9)  # Com esse id consigo consultar os skus que vendeu
     valor_total = models.DecimalField(max_digits=8, decimal_places=2)
     situacao = models.CharField(max_length=50)  # Aqui posso filtrar e tirar os cancelados
-
-    skus_vendidos = models.ManyToManyField(ProdutosAtivosTiny)
-    valores = models.CharField(max_length=100)
-
+    sku_vendido = models.ForeignKey(ProdutosAtivosTiny, on_delete=models.CASCADE, null=True)
     marketplace = models.CharField(max_length=50)
     data_pedido = models.DateTimeField()
-
-    def skus_vendidos_lista(self):
-        return ", ".join([p.sku for p in self.skus_vendidos.all()])
-
-    skus_vendidos.short_description = "SKUs vendidos"
+    marca = models.ForeignKey(Marca, on_delete=models.PROTECT, null=True)
 
     class Meta:
         verbose_name = 'Pedido'

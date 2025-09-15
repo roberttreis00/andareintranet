@@ -157,7 +157,7 @@ class FiltroDataForm(forms.Form):
         widget=forms.DateInput(attrs={'type': 'date'})
     )
     # Pega todas as marcas do banco
-    marcas = [(m.id, m.nome_marca) for m in Marca.objects.all()]
+    marcas = [(m.nome_marca, m.nome_marca) for m in Marca.objects.all()]
 
     # Adiciona a opção extra no início
     marcas = [('Todas', 'Todas')] + marcas
