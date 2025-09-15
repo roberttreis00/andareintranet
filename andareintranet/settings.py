@@ -15,7 +15,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -23,11 +22,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-jl)sy^#-zd&4#lq7^c^7w3oxtbhgnx0glb$gtgf)a1ug$@8$(c'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
-DEBUG = False
+DEBUG = True
+# DEBUG = False
 
-# ALLOWED_HOSTS = ['*']
-ALLOWED_HOSTS = ['andareintranet.com', 'www.andareintranet.com'] # ou o dominio
+ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['andareintranet.com', 'www.andareintranet.com'] # ou o dominio
 
 # Application definition
 
@@ -74,15 +73,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'andareintranet.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'andareintranet',
+        'USER': 'postgres',
+        'PASSWORD': 'novasenha',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    'old': {  # conexão para o SQLite antigo
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-    }
+}
 }
 
 
@@ -90,18 +96,18 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+{
+    'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+},
+{
+    'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+},
+{
+    'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+},
+{
+    'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+},
 ]
 
 
@@ -115,7 +121,6 @@ TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -138,13 +143,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
 REDIS_PORT = os.getenv('REDIS_PORT', '6379')
 CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0' # Conexão com o Redis para resultados
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # Conexão com o Redis para resultados
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'America/Sao_Paulo' # fuso horário
+CELERY_TIMEZONE = 'America/Sao_Paulo'  # fuso horário
 CSRF_TRUSTED_ORIGINS = [
-    "https://www.andareintranet.com",  # Seu domínio com HTTPS
+"https://www.andareintranet.com",  # Seu domínio com HTTPS
 ]
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True

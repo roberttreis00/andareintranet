@@ -40,3 +40,34 @@ class ArquivosProcessados(models.Model):
     class Meta:
         verbose_name = "Arquivo Processado"
         verbose_name_plural = "Arquivos Processados"
+
+class ProdutosAtivosTiny(models.Model):
+    sku = models.CharField(max_length=50, unique=True)
+    marca = models.CharField(max_length=500)
+
+    class Meta:
+        verbose_name = "Produto Ativo Tiny"
+        verbose_name_plural = 'Produtos Ativo Tiny'
+
+    def __str__(self):
+        return self.sku
+
+class Pedidos(models.Model):
+    id_tiny = models.CharField(max_length=9, unique=True)  # Com esse id consigo consultar os skus que vendeu
+    valor_total = models.DecimalField(max_digits=8, decimal_places=2)
+    situacao = models.CharField(max_length=50)  # Aqui posso filtrar e tirar os cancelados
+
+    skus_vendidos = models.ManyToManyField(ProdutosAtivosTiny)
+    valores = models.CharField(max_length=100)
+
+    marketplace = models.CharField(max_length=50)
+    data_pedido = models.DateTimeField()
+
+    def skus_vendidos_lista(self):
+        return ", ".join([p.sku for p in self.skus_vendidos.all()])
+
+    skus_vendidos.short_description = "SKUs vendidos"
+
+    class Meta:
+        verbose_name = 'Pedido'
+        verbose_name_plural = 'Pedidos'

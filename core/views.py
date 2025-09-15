@@ -1,5 +1,5 @@
 from django.utils.datastructures import MultiValueDictKeyError
-from .forms import SugestaoCompras, SugestaoComprasProgramada, GetSugestaoCompras
+from .forms import SugestaoCompras, SugestaoComprasProgramada, GetSugestaoCompras, FiltroDataForm
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from . import functions_compras
@@ -12,6 +12,8 @@ from .models import ProdutosCadastradosTiny, ArquivosProcessados
 from datetime import datetime, timezone
 from django.http import HttpResponse
 import openpyxl
+from datetime import date, timedelta
+from . import functions_analise_dados
 
 
 class GerarSugestaoCompras(FormView):
@@ -219,3 +221,40 @@ class DownloadFileView(View):
                     response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_path)
                     return response
         return HttpResponse("Arquivo não encontrado ou tarefa não concluída.", status=404)
+
+
+class DashboardAndare(FormView):
+    template_name = 'dashboard.html'
+    form_class = FiltroDataForm
+    success_url = 'dashboard'
+
+    def get_initial(self):
+        """Preenche o formulário com datas padrão (últimos 30 dias)"""
+        initial = super().get_initial()
+        initial['data_inicio'] = date.today() - timedelta(days=30)
+        initial['data_fim'] = date.today()
+        return initial
+
+    def form_valid(self, form):
+        # Pega os dados do formulário ou usa padrão
+        data_inicio = form.cleaned_data.get("data_inicio") or (date.today() - timedelta(days=30))
+        data_fim = form.cleaned_data.get("data_fim") or date.today()
+        marca = form.cleaned_data.get('Marca')
+
+        # Agora podemos calcular os dados
+        qtd_pedidos = functions_analise_dados.quantidade_vendas_do_periodo(data_inicio, data_fim, marca)
+        faturamento = functions_analise_dados.faturamento_total(data_inicio, data_fim)
+        ticket_medio = round(faturamento / qtd_pedidos, 2) if qtd_pedidos else 0
+        faturamento_mkt = functions_analise_dados.faturamento_por_marketplace(data_inicio, data_fim)
+
+        context = self.get_context_data(form=form)
+        context.update({
+            "data_inicio": data_inicio,
+            "data_fim": data_fim,
+            "qtd_pedidos": qtd_pedidos,
+            "faturamento": faturamento,
+            "ticket_medio": ticket_medio,
+            "marketplace": list(faturamento_mkt.keys()),
+            "qtd_por_mkt": list(faturamento_mkt.values()),
+        })
+        return self.render_to_response(context)
