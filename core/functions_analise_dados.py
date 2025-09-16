@@ -1,10 +1,14 @@
+from pprint import pprint
+
 from .models import ProdutosCadastradosTiny, ProdutosAtivosTiny, Pedidos, Marca
 from time import sleep
 from django.db import IntegrityError
 from celery import shared_task
 import requests
-from datetime import datetime, timedelta
-from django.db.models import Sum
+from datetime import datetime
+from .functions_compras import extrair_sku_pai
+from collections import Counter
+from collections import defaultdict
 
 token = "4d907ba2ee45f9e572b9a774badf06f6abde0ae8869c594cb948040ffb4a0544"
 tempo_espera_get = 2  # Tempo de espera até realizar outra requisição ideal da 30 por minuto
@@ -137,7 +141,7 @@ def atualizar_pedidos_do_dia(dia, mes, ano):  # executar todos os dias pega pedi
 
     pedidos = obter_pedidos_do_dia(dia, mes, ano)  # obtem os pedidos do dia desejado
     pedidos_do_dia_zip = zip(pedidos["id"], pedidos["data_pedido"], pedidos["valor"], pedidos["situacao"])
-    print('Quantidade de pedidos', len(pedidos))
+    print('Quantidade de pedidos', len(pedidos["id"]))
     for aid, data_pedido, valor, situacao in pedidos_do_dia_zip:
         # Verificar se o pedido já tem no banco de dados
         if Pedidos.objects.filter(id_tiny=aid):  # Aqui quer dizer que já tem
@@ -207,49 +211,98 @@ def atualizar_situacao_pedidos(dia, mes, ano):
 
 
 # Agora filtrar fazer os CRUD no banco de dados
-def objeto_filtrado(data_inicio, data_fim):
+def objeto_filtrado(data_inicio, data_fim, marca):
     pedidos_do_dia = Pedidos.objects.filter(
         data_pedido__range=(data_inicio, data_fim),
     ).exclude(situacao__in=['Cancelado', 'Dados incompletos'])
-    return pedidos_do_dia
+    if marca == "Todas":
+        return pedidos_do_dia
+    else:
+        marca_especifica = Marca.objects.get(nome_marca=marca)
+        pedidos_do_dia_por_marca = pedidos_do_dia.filter(marca=marca_especifica)
+    return pedidos_do_dia_por_marca
 
 
 def quantidade_vendas_do_periodo(data_inicio, data_fim, marca):
-    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim)
-    if marca == "Todas":
-        return len(pedidos_do_dia)
-    else:
-        marca_especifica = Marca.objects.get(nome_marca=marca)
-        pedidos_do_dia_por_marca = pedidos_do_dia.filter(marca=marca_especifica).values_list('id_tiny')
-        return len(pedidos_do_dia_por_marca)
+    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca).distinct('id_tiny')  # Pegar os pedidos unicos para somar
+    return len(pedidos_do_dia)
 
 
 def faturamento_total(data_inicio, data_fim, marca):
-    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim)
+    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca)
 
     if marca == "Todas":
         faturamento = sum([pedido.valor_total for pedido in pedidos_do_dia])
         return round(faturamento, 2)
     else:
-        marca_especifica = Marca.objects.get(nome_marca=marca)
-        pedidos_do_dia_por_marca = pedidos_do_dia.filter(marca=marca_especifica)
-        faturamento = sum([pedido.valor_total for pedido in pedidos_do_dia_por_marca])
+        faturamento = sum([pedido.valor_total for pedido in pedidos_do_dia])
         return round(faturamento, 2)
 
 
-def faturamento_por_marketplace(data_inicio, data_fim):
-    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim)
+def faturamento_por_marketplace(data_inicio, data_fim, marca):
+    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca)
+
     # Somar cada pedido no seu respectivo MKT
-    vendas_por_mkt = {}
+    vendas_por_mkt = defaultdict(float)
     for pedido in pedidos_do_dia:
-        try:
-            vendas_por_mkt[pedido.marketplace] += float(pedido.valor_total)
-        except KeyError:
-            vendas_por_mkt[pedido.marketplace] = float(pedido.valor_total)
+        vendas_por_mkt[pedido.marketplace] += float(pedido.valor_total)
 
     return dict(
         sorted(vendas_por_mkt.items(), key=lambda item: item[1], reverse=True))  # Aqui coloca do maior para menor
 
 
-def sku_mais_vendido():
+def skus_mais_vendido(data_inicio, data_fim, marca):
+    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca)
+
+    # Cria uma lista de SKUs PAI
+    skus_pai = [extrair_sku_pai(str(pedido.sku_vendido)) for pedido in pedidos_do_dia]
+
+    if marca == "aramis":
+        skus_pai = [str(pedido.sku_vendido) for pedido in pedidos_do_dia]
+
+    # Conta os SKUs
+    contagem = Counter(skus_pai)
+
+    # Pega os 10 mais vendidos
+    top10 = dict(contagem.most_common(5))
+    return top10
+
+def curva_abc(data_inicio, data_fim, marca, limite_a=0.7, limite_b=0.9):
+    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca)
+
+    vendas = defaultdict(float)
+    for pedido in pedidos_do_dia:
+        vendas[extrair_sku_pai(str(pedido.sku_vendido))] += float(pedido.valor_total)
+
+    vendas_abc = dict(sorted(vendas.items(), key=lambda x:x[1], reverse=True))
+#-----------------------------------------------------------------------------------------------------------------------
+    total = sum(vendas.values())
+    acumulado = 0
+
+    grupos = {
+        "A": {"total": 0, "skus": {}},
+        "B": {"total": 0, "skus": {}},
+        "C": {"total": 0, "skus": {}},
+    }
+
+    for sku, valor in vendas_abc.items():
+        acumulado += valor / total
+
+        if acumulado <= limite_a:
+            grupo = "A"
+        elif acumulado <= limite_b:
+            grupo = "B"
+        else:
+            grupo = "C"
+
+        grupos[grupo]["skus"][sku] = valor
+        grupos[grupo]["total"] += valor
+
+    pprint(grupos)
+
+def quantidade_pares_vendidos_cada_mes(data_inicio, data_fim, marca):
+    # Identificar se o filtro tem mais meses
     ...
+
+def top5_marcas_mais_vendidas(data_inicio, data_fim, marca):
+    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca)

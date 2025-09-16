@@ -1,91 +1,161 @@
 {% extends 'base.html' %}
 
-{%block title%}Dashboard{%endblock%}
-{%block body%}
-<form method="post" class="row g-3 justify-content-center">
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+<form method="post" class="row g-3 justify-content-center align-items-end filter-form">
     {% csrf_token %}
     <div class="col-auto">
-        <label for="id_data_inicio" class="form-label">Data Início</label>
+        <label for="id_data_inicio" class="form-label text-muted">Data Início</label>
         {{ form.data_inicio }}
     </div>
     <div class="col-auto">
-        <label for="id_data_fim" class="form-label">Data Fim</label>
+        <label for="id_data_fim" class="form-label text-muted">Data Fim</label>
         {{ form.data_fim }}
     </div>
     <div class="col-auto">
-        <label>Marca</label>
+        <label class="text-muted">Marca</label>
         {{ form.Marca }}
     </div>
-    <div class="col-auto align-self-end">
+    <div class="col-auto">
         <button type="submit" class="btn btn-primary">Filtrar</button>
     </div>
-    <!-- Quadrado de pedidos -->
 </form>
 
-<canvas id="meuGrafico"></canvas>
+<div class="container-fluid">
+    <div class="row g-4 mb-4">
+        <div class="col-md-4 col-sm-12">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2>Pedidos</h2>
+                    <p>{{ qtd_pedidos|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-12">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2>Faturamento</h2>
+                    <p>R${{ faturamento|default:"0,00" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-12">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2>Ticket médio</h2>
+                    <p>R${{ ticket_medio|default:"0,00" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <div class="row g-4">
+        <div class="col-lg-6 col-md-12">
+            <div class="card chart-card h-100">
+                <div class="card-body">
+                    <h3>Faturamento por Marketplace</h3>
+                    <canvas id="meuGrafico"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-12">
+            <div class="card chart-card h-100">
+                <div class="card-body">
+                    <h3>Top 5 SKUs Vendidos</h3>
+                    <canvas id="graficoTop5"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const ctx = document.getElementById('meuGrafico').getContext('2d');
-
-    const cores = [
-        'rgba(255, 99, 132, 0.6)',   // rosa suave
-        'rgba(54, 162, 235, 0.6)',   // azul pastel
-        'rgba(255, 206, 86, 0.6)',   // amarelo claro
-        'rgba(75, 192, 192, 0.6)',   // verde água
-        'rgba(153, 102, 255, 0.6)',  // lilás suave
-        'rgba(255, 159, 64, 0.6)'    // laranja pastel
+    const coresModernas = [
+        '#007bff', // Azul
+        '#6610f2', // Roxo
+        '#fd7e14', // Laranja
+        '#20c997', // Verde
+        '#ffc107', // Amarelo
+        '#dc3545'  // Vermelho
     ];
 
-    const meuGrafico = new Chart(ctx, {
-        type: 'pie',
+    // Gráfico de faturamento por marketplace
+    const ctx = document.getElementById('meuGrafico').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut', // Mudado para donut para um visual mais moderno
         data: {
             labels: {{ marketplace|safe }},
             datasets: [{
-                label: 'Faturamento',
                 data: {{ qtd_por_mkt|safe }},
-                backgroundColor: cores,
-                borderColor: 'white',
-                borderWidth: 2
+                backgroundColor: coresModernas,
+                borderColor: '#ffffff',
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '60%', // Tamanho do buraco no centro do donut
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        font: {
+                            weight: 'bold'
+                        },
+                        boxWidth: 20
+                    }
+                }
+            }
+        }
+    });
+
+    // Gráfico Top 5 SKUs vendidos
+    const ctx2 = document.getElementById('graficoTop5').getContext('2d');
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: {{ top5_sku_vendidos|safe }},
+            datasets: [{
+                label: 'Quantidade Vendida',
+                data: {{ qtd_top5|safe }},
+                backgroundColor: coresModernas.slice(0, 5),
+                borderColor: '#ffffff',
+                borderWidth: 1,
+                borderRadius: 8,
+                barThickness: 50
             }]
         },
         options: {
             responsive: true,
             plugins: {
-                legend: {
-                    position: 'right',
+                legend: { display: false },
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
                 },
-                title: {
-                    display: true,
-                    text: 'Faturamento por Marketplace'
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Quantidade Vendida'
+                    },
+                    grid: {
+                        color: '#f0f2f5'
+                    }
                 }
             }
         }
     });
 </script>
 
-<div class="card-pedidos">
-    <h2>Pedidos</h2>
-    {%if qtd_pedidos%}
-    <p>{{ qtd_pedidos }}</p>
-    {%else%}
-    <p>0</p>
-    {%endif%}
-</div>
-<div class="card-pedidos">
-    <h2>Faturamento</h2>
-    {%if qtd_pedidos%}
-    <p>R${{ faturamento }}</p>
-    {%else%}
-    <p>R$0</p>
-    {%endif%}
-</div>
-<div class="card-pedidos">
-    <h2>Ticket médio</h2>
-    {%if qtd_pedidos%}
-    <p>R${{ ticket_medio }}</p>
-    {%else%}
-    <p>R$0</p>
-    {%endif%}
-</div>
-
-{%endblock%}
+{% endblock %}
