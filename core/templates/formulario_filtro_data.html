@@ -1,0 +1,18 @@
+<form method="post" class="row g-3 justify-content-center align-items-end filter-form">
+    {% csrf_token %}
+    <div class="col-auto">
+        <label for="id_data_inicio" class="form-label text-muted">Data Início</label>
+        {{ form.data_inicio }}
+    </div>
+    <div class="col-auto">
+        <label for="id_data_fim" class="form-label text-muted">Data Fim</label>
+        {{ form.data_fim }}
+    </div>
+    <div class="col-auto">
+        <label class="text-muted">Marca</label>
+        {{ form.Marca }}
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+    </div>
+</form>
