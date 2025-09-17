@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from celery import shared_task
 import requests
 from datetime import datetime
-from .functions_compras import extrair_sku_pai
+from .functions_uso_geral import extrair_sku_pai
 from collections import Counter
 from collections import defaultdict
 
@@ -202,10 +202,11 @@ def atualizar_situacao_pedidos(dia, mes, ano):
     for aid, situacao in pedidos_do_dia_zip:
         # Verificar se o pedido já tem no banco de dados
         try:
-            pd = Pedidos.objects.get(id_tiny=aid)  # Aqui quer dizer que já tem
-            pd.situacao = situacao
-            pd.save()
-            print(pd.id_tiny, 'atualizado')
+            pd = Pedidos.objects.filter(id_tiny=aid)  # Aqui quer dizer que já tem
+            for pedido in pd:
+                pedido.situacao = situacao
+                pedido.save()
+                print(pedido.id_tiny, 'atualizado')
         except Pedidos.DoesNotExist:
             pass
 
@@ -298,7 +299,7 @@ def curva_abc(data_inicio, data_fim, marca, limite_a=0.7, limite_b=0.9):
         grupos[grupo]["skus"][sku] = valor
         grupos[grupo]["total"] += valor
 
-    pprint(grupos)
+    # pprint(grupos)
 
 def quantidade_pares_vendidos_cada_mes(data_inicio, data_fim, marca):
     # Identificar se o filtro tem mais meses

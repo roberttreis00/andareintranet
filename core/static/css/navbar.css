@@ -21,10 +21,17 @@ body {
     margin-bottom: 70px;
 }
 /* Container do gráfico */
-#meuGrafico {
+#meuGrafico{
     width: 400px;   /* largura menor */
     height: 400px;  /* altura menor */
-    margin: 20px auto; /* centralizado horizontalmente */
+    margin: -10px auto; /* centralizado horizontalmente */
+    left: 50px;
+}
+
+#graficoTop5{
+    width: 400px;   /* largura menor */
+    height: 400px;  /* altura menor */
+    margin: 80px auto; /* centralizado horizontalmente */
     left: 50px;
 }
 
@@ -114,6 +121,73 @@ body {
     font-size: 1.5rem;
     font-weight: 700;
     color: #343a40;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     text-align: center;
+}
+/* ===== Formulário de Filtro ===== */
+.filter-form {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    margin-bottom: 2rem;
+    gap: 1rem;
+}
+
+/* Labels */
+.filter-form .form-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.3rem;
+}
+
+/* Inputs */
+.filter-form input,
+.filter-form select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Foco nos inputs */
+.filter-form input:focus,
+.filter-form select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.15);
+    outline: none;
+}
+
+/* Botão */
+.filter-form button {
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.filter-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,123,255,0.25);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .filter-form {
+        flex-direction: column;
+        padding: 1rem;
+    }
+    .filter-form .col-auto,
+    .filter-form .col-md-3 {
+        width: 100%;
+    }
+    .filter-form button {
+        width: 100%;
+    }
+}
+
+#container-fluid{
+    width: 80%;
 }

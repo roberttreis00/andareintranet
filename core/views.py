@@ -247,7 +247,7 @@ class DashboardAndare(FormView):
         ticket_medio = round(faturamento / qtd_pedidos, 2) if qtd_pedidos else 0
         faturamento_mkt = functions_analise_dados.faturamento_por_marketplace(data_inicio, data_fim, marca)
         top5_skus_mais_vendidos = functions_analise_dados.skus_mais_vendido(data_inicio, data_fim, marca)
-        curva_abc = functions_analise_dados.curva_abc(data_inicio, data_fim, marca)
+        # curva_abc = functions_analise_dados.curva_abc(data_inicio, data_fim, marca)
 
         context = self.get_context_data(
             form=form,
