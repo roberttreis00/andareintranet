@@ -69,11 +69,6 @@ body {
     gap: 20px;
 }
 
-/* Oculta o rodapé */
-footer {
-    display: none;
-}
-
 /* Cores do tema escuro */
 body {
     background-color: #f0f2f5;
@@ -190,4 +185,9 @@ body {
 
 #container-fluid{
     width: 80%;
+}
+
+.resultado-custo{
+    font-size: 40px;
+    color: green;
 }

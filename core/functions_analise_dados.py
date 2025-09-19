@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from .models import ProdutosCadastradosTiny, ProdutosAtivosTiny, Pedidos, Marca
 from time import sleep
 from django.db import IntegrityError
@@ -109,13 +107,36 @@ def obter_informacoes_pedido(aid):
     response = response.json()['retorno']['pedido']
     skus_vendidos = [venda['item']['codigo'] for venda in response['itens']]
     marketplace = response['ecommerce']['nomeEcommerce']
-    aid_produto = [venda['item']['id_produto'] for venda in response['itens']]
     valores_unicos = [venda['item']['valor_unitario'] for venda in response['itens']]
 
-    return marketplace, skus_vendidos, aid_produto, valores_unicos
+    return marketplace, skus_vendidos, valores_unicos
 
 
-def descobrir_marca_sku_por_api(aid_produto):
+def descobrir_marca_sku_por_api(sku_produto):
+    aid_produto = 'não encontrado'
+
+    for situacao in ['E', 'A', 'I']:
+        # Obter o aid_produto
+        url1 = 'https://api.tiny.com.br/api2/produtos.pesquisa.php'
+        params1 = {
+            'token': token,
+            'formato': 'json',
+            'pesquisa': sku_produto,
+            'situacao': situacao
+        }
+        response1 = requests.get(url1, params=params1)
+        if response1.status_code == 200:
+            try:
+                aid_produto = response1.json()['retorno']['produtos'][0]['produto']['id']
+                break
+            except KeyError:
+                continue
+
+        sleep(tempo_espera_get)
+
+    if aid_produto == 'não encontrado':
+        return ""
+
     # Obter a marca do sku obtendo as informações desse sku
     url2 = 'https://api.tiny.com.br/api2/produto.obter.php'
     params2 = {
@@ -125,8 +146,8 @@ def descobrir_marca_sku_por_api(aid_produto):
     }
     response2 = requests.get(url2, params=params2)
     marca_produto = response2.json()['retorno']['produto']['marca']
-    sku_produto = response2.json()['retorno']['produto']['codigo']
-    return sku_produto, marca_produto
+    ean = response2.json()['retorno']['produto']['gtin']
+    return marca_produto.lower(), ean
 
 
 def atualizar_pedidos_do_dia(dia, mes, ano):  # executar todos os dias pega pedidos do dia anterior
@@ -149,7 +170,7 @@ def atualizar_pedidos_do_dia(dia, mes, ano):  # executar todos os dias pega pedi
 
         try:
             skus_mkts = obter_informacoes_pedido(aid)  # Pega o marketplace e os skus vendidos
-            for sku, valor_venda in zip(skus_mkts[1], skus_mkts[3]):
+            for sku, valor_venda in zip(skus_mkts[1], skus_mkts[2]):
                 instance = Pedidos()
 
                 instance.id_tiny = aid
@@ -166,16 +187,14 @@ def atualizar_pedidos_do_dia(dia, mes, ano):  # executar todos os dias pega pedi
                 instance.save()
 
                 # Verificar se o SKU se está no banco de dados se não estiver salvar, só depois continuar
-                for sku_vendido, aid_produto in zip(skus_mkts[1], skus_mkts[2]):
-                    try:
-                        ProdutosAtivosTiny.objects.get(sku=sku_vendido)
-                    except ProdutosAtivosTiny.DoesNotExist:
-                        instance2 = ProdutosAtivosTiny()
-                        dados_pedido = descobrir_marca_sku_por_api(aid_produto)
-
-                        instance2.sku = dados_pedido[0]
-                        instance2.marca = dados_pedido[1]
-                        instance2.save()
+                for sku_vendido in skus_mkts[1]:
+                    if not ProdutosAtivosTiny.objects.filter(sku=sku_vendido).exists():
+                        dados_pedido = descobrir_marca_sku_por_api(sku_vendido)
+                        ProdutosAtivosTiny.objects.create(
+                            sku=sku_vendido,
+                            marca=dados_pedido[0],
+                            ean=dados_pedido[1],
+                        )
 
                 # Adiciona os SKUS
                 instance.marca = Marca.objects.filter(nome_marca=descobrir_marca_sku(sku)).first()
@@ -299,11 +318,42 @@ def curva_abc(data_inicio, data_fim, marca, limite_a=0.7, limite_b=0.9):
         grupos[grupo]["skus"][sku] = valor
         grupos[grupo]["total"] += valor
 
-    # pprint(grupos)
+    return grupos
+#-----------------------------------------------------------------------------------------------------------------------
+# descobrir o EAN do sku do produto
+def descobrir_ean_sku(sku_produto):
+    ean = None
 
-def quantidade_pares_vendidos_cada_mes(data_inicio, data_fim, marca):
-    # Identificar se o filtro tem mais meses
+    url = 'https://api.tiny.com.br/api2/produtos.pesquisa.php'
+    for situacao in ['E', 'A', 'I']:
+        params = {
+            'token': token,
+            'formato': 'json',
+            'pesquisa': sku_produto,
+            'situacao': situacao
+        }
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            try:
+                ean = response.json()['retorno']['produtos'][0]['produto']['gtin']
+            except KeyError:
+                continue
+
+        sleep(2)
+
+    return ean
+
+
+# Pesquisa o SKU e pega seu respectivo EAN/ Isso pode ser feito por planilha
+def atualizar_eans_dos_skus():
+    for sku_produto in ProdutosAtivosTiny.objects.all():
+        if not sku_produto.ean:
+            ean_produto = descobrir_ean_sku(sku_produto.sku)
+            sku_produto.ean = ean_produto
+            sku_produto.save()
+            sleep(2)
+
+def top10_marcas_que_mais_fatura():
     ...
 
-def top5_marcas_mais_vendidas(data_inicio, data_fim, marca):
-    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca)
+# Será que tem algum pedido com marca em maiúsculo e ta dando erro?

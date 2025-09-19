@@ -1,6 +1,14 @@
 {% extends 'base.html' %}
 
 {% block title %}Dashboard{% endblock %}
+{%block style%}
+    <style>
+        /* Oculta o rodapé */
+    footer {
+        display: none;
+    }
+</style>
+{% endblock %}
 
 {% block body %}
 {%include 'formulario_filtro_data.html'%}

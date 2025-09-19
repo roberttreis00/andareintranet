@@ -163,3 +163,6 @@ class FiltroDataForm(forms.Form):
     marcas = [('Todas', 'Todas')] + marcas
 
     Marca = forms.ChoiceField(choices=marcas, label='Marca')
+
+class ConsultarCusto(forms.Form):
+    sku_ean_pesquisado = forms.CharField(max_length=50, label='Digite o SKU ou EAN')
