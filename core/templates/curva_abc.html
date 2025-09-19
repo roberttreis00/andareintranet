@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+{% include 'formulario_filtro_data.html' %}
+
+{% if curva_abc %}
+<div class="dashboard-container">
+
+<!-- Tabela Curva ABC (Top 5 SKUs) -->
+<div class="card" style="width: 600px;">
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Categoria</th>
+                    <th>SKU</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for categoria, data in curva_abc.items %}
+                    {% for sku, valor in data.skus.items|slice:":5" %}
+                    <tr>
+                        <td>{{ categoria }}</td>
+                        <td>{{ sku }}</td>
+                        <td>{{ valor|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+    <!-- Gráfico Curva ABC -->
+    <div class="card chart-card" style="width: 600px;">
+        <div class="card-body">
+            <canvas id="abcChart"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('abcChart').getContext('2d');
+
+    const data = {
+        labels: {{ curva_abc_labels|safe }},
+        datasets: [{
+            label: 'Total por Categoria',
+            data: {{ curva_abc_valores|safe }},
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+        }]
+    };
+
+    const config = {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Curva ABC' }
+            },
+            scales: { y: { beginAtZero: true } }
+        },
+    };
+
+    new Chart(ctx, config);
+</script>
+{% endif %}
+{% endblock %}

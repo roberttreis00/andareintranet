@@ -1,5 +1,5 @@
 from django.utils.datastructures import MultiValueDictKeyError
-from .forms import SugestaoCompras, SugestaoComprasProgramada, GetSugestaoCompras, FiltroDataForm
+from .forms import SugestaoCompras, SugestaoComprasProgramada, GetSugestaoCompras, FiltroDataForm, ConsultarCusto
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from . import functions_compras
@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 import os
 from django.http import JsonResponse
 from .tasks import atualizar_lista_produtos, tratar_sugestao_de_compras
-from .models import ProdutosCadastradosTiny, ArquivosProcessados
+from .models import ProdutosCadastradosTiny, ArquivosProcessados, ProdutosAtivosTiny
 from datetime import datetime, timezone
 from django.http import HttpResponse
 import openpyxl
@@ -247,7 +247,6 @@ class DashboardAndare(FormView):
         ticket_medio = round(faturamento / qtd_pedidos, 2) if qtd_pedidos else 0
         faturamento_mkt = functions_analise_dados.faturamento_por_marketplace(data_inicio, data_fim, marca)
         top5_skus_mais_vendidos = functions_analise_dados.skus_mais_vendido(data_inicio, data_fim, marca)
-        # curva_abc = functions_analise_dados.curva_abc(data_inicio, data_fim, marca)
 
         context = self.get_context_data(
             form=form,
@@ -262,3 +261,62 @@ class DashboardAndare(FormView):
             qtd_top5 = list(top5_skus_mais_vendidos.values()),
         )
         return self.render_to_response(context)
+
+class CurvaABC(FormView):
+    template_name = 'curva_abc.html'
+    form_class = FiltroDataForm
+    success_url = 'curva_abc'
+
+    def get_initial(self):
+        """Preenche o formulário com datas padrão (últimos 30 dias)"""
+        initial = super().get_initial()
+        initial['data_inicio'] = date.today() - timedelta(days=30)
+        initial['data_fim'] = date.today()
+        return initial
+
+    def form_valid(self, form):
+        data_inicio = form.cleaned_data.get("data_inicio") or (date.today() - timedelta(days=30))
+        data_fim = form.cleaned_data.get("data_fim") or date.today()
+        marca = form.cleaned_data.get('Marca')
+
+        curva_abc = functions_analise_dados.curva_abc(data_inicio, data_fim, marca)
+
+        # Preparar rowspan limitado a 5
+        for categoria, data in curva_abc.items():
+            data['rowspan'] = min(len(data['skus']), 5)
+
+        labels = list(curva_abc.keys())
+        valores = [round(d["total"], 2) for d in curva_abc.values()]
+
+        context = self.get_context_data(
+            form=form,
+            curva_abc=curva_abc,
+            curva_abc_labels=labels,
+            curva_abc_valores=valores,
+        )
+        return self.render_to_response(context)
+
+class Custos(FormView):
+    form_class = ConsultarCusto
+    template_name = 'custos.html'
+    success_url = 'custos'
+
+    def form_valid(self, form):
+        sku_ean = form.cleaned_data['sku_ean_pesquisado']
+        try:
+            try:
+                # Quer dizer que é por EAN
+                int(sku_ean)
+                produto = ProdutosAtivosTiny.objects.get(ean=sku_ean)
+                custo = produto.custo
+            except ValueError:
+                # Quer dizer que é por SKU
+                produto = ProdutosAtivosTiny.objects.get(sku=sku_ean.upper())
+                custo = produto.custo
+        except ProdutosAtivosTiny.DoesNotExist:
+            produto = False
+
+        if produto:
+            return self.render_to_response({'form': form, 'resultado': custo})
+        else:
+            return self.render_to_response({'form': form, 'resultado': 'Não encontrado'})

@@ -44,6 +44,8 @@ class ArquivosProcessados(models.Model):
 class ProdutosAtivosTiny(models.Model):
     sku = models.CharField(max_length=50, unique=True)
     marca = models.CharField(max_length=500)
+    custo = models.DecimalField(max_digits=8, decimal_places=2, null=True)  # Pego das notas
+    ean = models.CharField(max_length=50, null=True)
 
     class Meta:
         verbose_name = "Produto Ativo Tiny"
@@ -64,3 +66,6 @@ class Pedidos(models.Model):
     class Meta:
         verbose_name = 'Pedido'
         verbose_name_plural = 'Pedidos'
+
+class DataUltimaAtualizacaoCustos(models.Model):
+    DataUltima = models.DateTimeField()

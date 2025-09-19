@@ -16,8 +16,8 @@ class ArquivosProcessadosAdmin(admin.ModelAdmin):
 
 @admin.register(models.ProdutosAtivosTiny)
 class ProdutosAtivosTiny(admin.ModelAdmin):
-    list_display = ['sku', 'marca']
-    search_fields = ['sku', 'marca']
+    list_display = ['sku', 'marca', 'ean', 'custo']
+    search_fields = ['sku', 'marca', 'ean']
 
 @admin.register(models.Pedidos)
 class PedidosAdmin(admin.ModelAdmin):
