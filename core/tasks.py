@@ -8,14 +8,20 @@ import pandas as pd
 import os
 from datetime import datetime
 
-marcas = list(Marca.objects.values_list('nome_marca', flat=True))  # Pegar todas as marcas do Banco de Dados e transforma em uma lista
-ProdutosAtivos = {marca:[] for marca in marcas}  # Pega a lista de marca e faz um dict assim {marca: []}
-ProdutosAtivosExcluidos = {marca:[] for marca in marcas}
+def get_marca():
+    return list(Marca.objects.values_list('nome_marca', flat=True))  # Pegar todas as marcas do Banco de Dados e transforma em uma lista
+
 data_atual = datetime.now().strftime('%d/%m/%y')
+
 
 # Atualiza a lista de produtos ativos e excluidos contendo todas as marcas e skus filhos
 @shared_task(bind=True)
 def atualizar_lista_produtos(self):
+    marcas = get_marca()
+
+    ProdutosAtivos = {marca: [] for marca in marcas}  # Pega a lista de marca e faz um dict assim {marca: []}
+    ProdutosAtivosExcluidos = {marca: [] for marca in marcas}
+
     # Pesquisa na API todos os produtos
     for marca in ProdutosAtivos.keys():
         sleep(0.5)
