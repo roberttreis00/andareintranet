@@ -7,6 +7,9 @@ from datetime import datetime
 from .functions_uso_geral import extrair_sku_pai
 from collections import Counter
 from collections import defaultdict
+import zipfile
+from bs4 import BeautifulSoup
+
 
 token = "4d907ba2ee45f9e572b9a774badf06f6abde0ae8869c594cb948040ffb4a0544"
 tempo_espera_get = 2  # Tempo de espera até realizar outra requisição ideal da 30 por minuto
@@ -135,7 +138,7 @@ def descobrir_marca_sku_por_api(sku_produto):
         sleep(tempo_espera_get)
 
     if aid_produto == 'não encontrado':
-        return ""
+        return "", ""
 
     # Obter a marca do sku obtendo as informações desse sku
     url2 = 'https://api.tiny.com.br/api2/produto.obter.php'
@@ -194,6 +197,7 @@ def atualizar_pedidos_do_dia(dia, mes, ano):  # executar todos os dias pega pedi
                             sku=sku_vendido,
                             marca=dados_pedido[0],
                             ean=dados_pedido[1],
+                            custo=0.00
                         )
 
                 # Adiciona os SKUS
@@ -244,7 +248,8 @@ def objeto_filtrado(data_inicio, data_fim, marca):
 
 
 def quantidade_vendas_do_periodo(data_inicio, data_fim, marca):
-    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca).distinct('id_tiny')  # Pegar os pedidos unicos para somar
+    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca).distinct(
+        'id_tiny')  # Pegar os pedidos unicos para somar
     return len(pedidos_do_dia)
 
 
@@ -287,6 +292,7 @@ def skus_mais_vendido(data_inicio, data_fim, marca):
     top10 = dict(contagem.most_common(5))
     return top10
 
+
 def curva_abc(data_inicio, data_fim, marca, limite_a=0.7, limite_b=0.9):
     pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca)
 
@@ -294,8 +300,8 @@ def curva_abc(data_inicio, data_fim, marca, limite_a=0.7, limite_b=0.9):
     for pedido in pedidos_do_dia:
         vendas[extrair_sku_pai(str(pedido.sku_vendido))] += float(pedido.valor_total)
 
-    vendas_abc = dict(sorted(vendas.items(), key=lambda x:x[1], reverse=True))
-#-----------------------------------------------------------------------------------------------------------------------
+    vendas_abc = dict(sorted(vendas.items(), key=lambda x: x[1], reverse=True))
+    # -----------------------------------------------------------------------------------------------------------------------
     total = sum(vendas.values())
     acumulado = 0
 
@@ -319,7 +325,9 @@ def curva_abc(data_inicio, data_fim, marca, limite_a=0.7, limite_b=0.9):
         grupos[grupo]["total"] += valor
 
     return grupos
-#-----------------------------------------------------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------------------------------------------------
 # descobrir o EAN do sku do produto
 def descobrir_ean_sku(sku_produto):
     ean = None
@@ -344,16 +352,57 @@ def descobrir_ean_sku(sku_produto):
     return ean
 
 
+from django.db.models import Q
+
+
 # Pesquisa o SKU e pega seu respectivo EAN/ Isso pode ser feito por planilha
 def atualizar_eans_dos_skus():
-    for sku_produto in ProdutosAtivosTiny.objects.all():
+    produtos_sem_ean = ProdutosAtivosTiny.objects.filter(
+        Q(ean="") | Q(ean="-")
+    )
+
+    for sku_produto in produtos_sem_ean:
         if not sku_produto.ean:
+            print(sku_produto.ean, sku_produto.sku)
             ean_produto = descobrir_ean_sku(sku_produto.sku)
             sku_produto.ean = ean_produto
             sku_produto.save()
             sleep(2)
 
+
 def top10_marcas_que_mais_fatura():
     ...
 
+
 # Será que tem algum pedido com marca em maiúsculo e ta dando erro?
+def atualizar_custos_produtos(arquivo_zip):
+    # Primeiro pega o ultimo custo do EANs disponiveis na NF
+    custos = defaultdict()
+
+    with zipfile.ZipFile(arquivo_zip, 'r') as zip_file:
+        for nota in zip_file.namelist():
+            with zip_file.open(nota) as nota_xml:
+                bs = BeautifulSoup(nota_xml, 'xml')
+                # Pegar EAN e Quantidade
+
+                produtos = bs.find_all('det')
+                for produto in produtos:
+                    p = produto.find('prod')
+
+                    # Agrupar e pegar o ultimo
+                    ean = p.find('cEAN').text
+                    custo = float(p.find('vUnCom').text)
+
+                    custos[ean] = custo
+
+    # Agora com os custos em mãos atualizar o banco de dados
+    # Todos os Produtos
+    produtos = ProdutosAtivosTiny.objects.all()
+    for p in produtos:
+        if not p.custo and p.ean:
+            try:
+                custo = custos[p.ean]
+                p.custo = float(custo)
+                p.save()
+            except KeyError:
+                continue

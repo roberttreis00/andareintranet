@@ -8,6 +8,7 @@ urlpatterns = [
     path('dashboard/', views.DashboardAndare.as_view(), name='dashboard'),
     path('curva_abc/', views.CurvaABC.as_view(), name='curva_abc'),
     path('custos/', views.Custos.as_view(), name='custos'),
+    path('atualizar_custos/', views.AtualizarCustos.as_view(), name='atualizar_custos'),
 
     path('task-status/<int:task_id>/', views.TaskStatusView.as_view(), name='task_status'),
     path('download/<int:task_id>/', views.DownloadFileView.as_view(), name='download_file'),

@@ -128,3 +128,5 @@ Control.system-ca-bundle
 GitHub.sublime-settings
 
 staticfiles/
+
+db.sqlite3
