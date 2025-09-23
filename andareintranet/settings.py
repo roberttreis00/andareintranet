@@ -22,11 +22,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-jl)sy^#-zd&4#lq7^c^7w3oxtbhgnx0glb$gtgf)a1ug$@8$(c'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-# DEBUG = False
+# DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
-# ALLOWED_HOSTS = ['andareintranet.com', 'www.andareintranet.com'] # ou o dominio
+# ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['andareintranet.com', 'www.andareintranet.com'] # ou o dominio
 
 # Application definition
 
@@ -91,9 +91,18 @@ DATABASES = {
 }
 }
 
+# DATABASES = {
+#   'default': {
+#     'ENGINE': 'django.db.backends.postgresql',
+#     'NAME': os.environ.get('POSTGRES_DB', 'andareintranet'),
+#     'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+#     'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'g1w61g6q64ggvv6'),
+#     'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+#     'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+#   },
+#   'old': { 'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3' }
+# }
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
 {

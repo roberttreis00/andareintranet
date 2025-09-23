@@ -1,5 +1,6 @@
 from django.utils.datastructures import MultiValueDictKeyError
-from .forms import SugestaoCompras, SugestaoComprasProgramada, GetSugestaoCompras, FiltroDataForm, ConsultarCusto
+from .forms import (SugestaoCompras, SugestaoComprasProgramada, GetSugestaoCompras, FiltroDataForm, ConsultarCusto,
+                    AtualizarCusto)
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from . import functions_compras
@@ -8,13 +9,14 @@ from django.shortcuts import get_object_or_404
 import os
 from django.http import JsonResponse
 from .tasks import atualizar_lista_produtos, tratar_sugestao_de_compras
-from .models import ProdutosCadastradosTiny, ArquivosProcessados, ProdutosAtivosTiny
+from .models import ProdutosCadastradosTiny, ArquivosProcessados, ProdutosAtivosTiny,DataUltimaAtualizacaoCustos
 from datetime import datetime, timezone
 from django.http import HttpResponse
 import openpyxl
 from datetime import date, timedelta
 from . import functions_analise_dados
-
+from django.contrib import messages
+from django.utils import timezone as ti
 
 class GerarSugestaoCompras(FormView):
     template_name = 'sugestao.html'
@@ -226,7 +228,7 @@ class DownloadFileView(View):
 class DashboardAndare(FormView):
     template_name = 'dashboard.html'
     form_class = FiltroDataForm
-    success_url = 'dashboard'
+    success_url = reverse_lazy('dashboard')
 
     def get_initial(self):
         """Preenche o formulário com datas padrão (últimos 30 dias)"""
@@ -265,7 +267,7 @@ class DashboardAndare(FormView):
 class CurvaABC(FormView):
     template_name = 'curva_abc.html'
     form_class = FiltroDataForm
-    success_url = 'curva_abc'
+    success_url = reverse_lazy("curva_abc")
 
     def get_initial(self):
         """Preenche o formulário com datas padrão (últimos 30 dias)"""
@@ -299,7 +301,7 @@ class CurvaABC(FormView):
 class Custos(FormView):
     form_class = ConsultarCusto
     template_name = 'custos.html'
-    success_url = 'custos'
+    success_url = reverse_lazy("custos")
 
     def form_valid(self, form):
         sku_ean = form.cleaned_data['sku_ean_pesquisado']
@@ -320,3 +322,26 @@ class Custos(FormView):
             return self.render_to_response({'form': form, 'resultado': custo})
         else:
             return self.render_to_response({'form': form, 'resultado': 'Não encontrado'})
+
+class AtualizarCustos(FormView):
+    template_name = "atualizar_custos.html"
+    form_class = AtualizarCusto
+    success_url = reverse_lazy("atualizar_custos")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        ultima_data = DataUltimaAtualizacaoCustos.objects.order_by('-DataUltima').first()
+        context['ultima_data'] = ultima_data.DataUltima if ultima_data else None
+        return context
+
+    def form_valid(self, form):
+        arquivo_zipado = self.request.FILES['arquivo_zip_nfs']
+        functions_analise_dados.atualizar_custos_produtos(arquivo_zipado)
+
+        messages.success(self.request, "Custos atualizados com sucesso!")
+
+        ultima_data = DataUltimaAtualizacaoCustos.objects.order_by('-DataUltima').first()
+        ultima_data.DataUltima = ti.now().date()
+        ultima_data.save()
+
+        return super().form_valid(form)

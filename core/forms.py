@@ -166,3 +166,6 @@ class FiltroDataForm(forms.Form):
 
 class ConsultarCusto(forms.Form):
     sku_ean_pesquisado = forms.CharField(max_length=50, label='Digite o SKU ou EAN')
+
+class AtualizarCusto(forms.Form):
+    arquivo_zip_nfs = forms.FileField(label='Arquivo Zipado com os .xml')
