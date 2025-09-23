@@ -3,6 +3,7 @@ import pandas as pd
 from core.models import Marca, ProdutosCadastradosTiny
 from core.functions_uso_geral import extrair_sku_pai, agrupar_vendas_por_marca_lista_vendas
 from core.tasks import atualizar_lista_produtos
+from core.functions_analise_dados import salvar_skus_filho
 
 # Função que detecta se tem alguma nova marca no relatorio de vendas para ser adicionada no BD
 def verificar_relatorio_vendas_marca_nova(relatorio_vendas):
@@ -32,6 +33,8 @@ def verificar_relatorio_vendas_marca_nova(relatorio_vendas):
 
         atualizar_lista_produtos.delay()  # Mada para fila a tarefa de atualizar o sistema de skus, pois agora tem uma nova
         # marca para adicionar os skus filhos
+        # salvar os novos skus filhos no BD
+        salvar_skus_filho.delay()
 
 # Função que pega os dados de estoque geral, full, comprado e calculo uma sugestão de compras com base no periodo
 # desejado, e retorna uma planilha com todos esses dados

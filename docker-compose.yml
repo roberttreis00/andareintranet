@@ -1,4 +1,17 @@
 services:
+  db:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-andareintranet}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-g1w61g6q64ggvv6}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - andareintranet_network
+
   redis:
     image: redis:latest
     container_name: redis
@@ -39,6 +52,9 @@ services:
       REDIS_PORT: 6379
     networks:
       - andareintranet_network
+
+volumes:
+  postgres_data:
 
 networks:
   andareintranet_network:

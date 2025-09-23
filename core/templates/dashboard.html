@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+{%block style%}
+    <style>
+        /* Oculta o rodapé */
+    footer {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+{%include 'formulario_filtro_data.html'%}
+
+<div class="container-fluid" style="max-width: 1200px;">
+    <div class="row g-4 mb-4">
+        <div class="col-md-4 col-sm-12">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2>Pedidos</h2>
+                    <p>{{ qtd_pedidos|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-12">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2>Faturamento</h2>
+                    <p>R${{ faturamento|default:"0,00" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-12">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2>Ticket médio</h2>
+                    <p>R${{ ticket_medio|default:"0,00" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6 col-md-12">
+            <div class="card chart-card h-100">
+                <div class="card-body">
+                    <h3>Faturamento por Marketplace</h3>
+                    <canvas id="meuGrafico"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-12">
+            <div class="card chart-card h-100">
+                <div class="card-body">
+                    <h3>Top 5 SKUs Vendidos</h3>
+                    <canvas id="graficoTop5"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const coresModernas = [
+        '#007bff', // Azul
+        '#6610f2', // Roxo
+        '#fd7e14', // Laranja
+        '#20c997', // Verde
+        '#ffc107', // Amarelo
+        '#dc3545'  // Vermelho
+    ];
+
+    // Gráfico de faturamento por marketplace
+    const ctx = document.getElementById('meuGrafico').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut', // Mudado para donut para um visual mais moderno
+        data: {
+            labels: {{ marketplace|safe }},
+            datasets: [{
+                data: {{ qtd_por_mkt|safe }},
+                backgroundColor: coresModernas,
+                borderColor: '#ffffff',
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '60%', // Tamanho do buraco no centro do donut
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        font: {
+                            weight: 'bold'
+                        },
+                        boxWidth: 20
+                    }
+                }
+            }
+        }
+    });
+
+    // Gráfico Top 5 SKUs vendidos
+    const ctx2 = document.getElementById('graficoTop5').getContext('2d');
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: {{ top5_sku_vendidos|safe }},
+            datasets: [{
+                label: 'Quantidade Vendida',
+                data: {{ qtd_top5|safe }},
+                backgroundColor: coresModernas.slice(0, 5),
+                borderColor: '#ffffff',
+                borderWidth: 1,
+                borderRadius: 8,
+                barThickness: 50
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Quantidade Vendida'
+                    },
+                    grid: {
+                        color: '#f0f2f5'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock %}
