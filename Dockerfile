@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     pkg-config \
     build-essential \
+    libpq-dev \
     libssl-dev \
     libffi-dev \
     libmariadb-dev \
