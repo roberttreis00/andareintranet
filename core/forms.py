@@ -156,13 +156,15 @@ class FiltroDataForm(forms.Form):
         required=False,
         widget=forms.DateInput(attrs={'type': 'date'})
     )
-    # Pega todas as marcas do banco
-    marcas = [(m.nome_marca, m.nome_marca) for m in Marca.objects.all()]
 
-    # Adiciona a opção extra no início
-    marcas = [('Todas', 'Todas')] + marcas
+    Marca = forms.ChoiceField(choices=[], label='Marca')  # inicial vazio
 
-    Marca = forms.ChoiceField(choices=marcas, label='Marca')
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pega todas as marcas do banco quando o form é instanciado
+        marcas = [(m.nome_marca, m.nome_marca) for m in Marca.objects.all()]
+        marcas = [('Todas', 'Todas')] + marcas
+        self.fields['Marca'].choices = marcas
 
 class ConsultarCusto(forms.Form):
     sku_ean_pesquisado = forms.CharField(max_length=50, label='Digite o SKU ou EAN')
