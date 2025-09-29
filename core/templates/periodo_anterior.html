@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+{%block style%}
+    <style>
+        /* Oculta o rodapé */
+    footer {
+        display: none;
+    }
+    </style>
+{% endblock %}
+
+{% block body %}
+
+<form method="post" class="row g-3 justify-content-center align-items-end filter-form">
+    {% csrf_token %}
+    <div class="col-auto">
+        <label class="text-muted">Marca</label>
+        {{ form.Marca }}
+    </div>
+    <div class="col-auto">
+        <label class="text-muted">Período</label>
+        {{ form.Periodo }}
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+    </div>
+</form>
+
+<div class="d-flex justify-content-center gap-4 flex-wrap">
+    <!-- Gráfico Quantidade -->
+    <div class="card shadow-sm bg-white rounded p-3" style="width: 550px;">
+        <div class="bg-dark text-white p-2 d-flex justify-content-between align-items-center">
+            <span>Quantidade | {{dat_ant}} | {{data_3}}</span>
+            <span style="color: {% if por_qtd >= 0 %}lime{% else %}red{% endif %}; font-weight: bold;">
+                {{ por_qtd|floatformat:2 }}%
+            </span>
+        </div>
+        <canvas id="qtdChart" style="max-height: 350px;"></canvas>
+    </div>
+
+<!-- Gráfico Faturamento -->
+<div class="card shadow-sm bg-white rounded p-3" style="width: 550px;">
+    <div class="bg-dark text-white p-2 d-flex justify-content-between align-items-center">
+        <span>Faturamento | {{dat_ant}} | {{data_3}}</span>
+        <span style="color: {% if por_fat >= 0 %}lime{% else %}red{% endif %}; font-weight: bold;">
+            {{ por_fat|floatformat:2 }}%
+        </span>
+    </div>
+    <canvas id="fatChart" style="max-height: 350px;"></canvas>
+</div>
+
+</div>
+
+<!-- Chart.js e plugin DataLabels -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<script>
+const qtd_ant = Number({{ qtd_ant|default:0 }});
+const qtd_atu = Number({{ qtd_atu|default:0 }});
+const fat_ant = Number({{ fat_ant|default:0 }});
+const fat_atu = Number({{ fat_atu|default:0 }});
+
+// Gráfico Quantidade
+new Chart(document.getElementById('qtdChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Qtd Anterior', 'Qtd Atual'],
+        datasets: [{
+            data: [qtd_ant, qtd_atu],
+            backgroundColor: ['#3498db', '#2ecc71']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 40 } },
+        plugins: {
+            legend: { display: false },
+            datalabels: {
+                anchor: 'end',
+                align: 'end',
+                color: '#000',
+                font: { weight: 'bold', size: 16 },
+                formatter: function(value) {
+                    return value.toLocaleString('pt-BR');
+                }
+            }
+        },
+        scales: {
+            y: { beginAtZero: true, grid: { display: false } },
+            x: { grid: { display: false } }
+        }
+    },
+    plugins: [ChartDataLabels]
+});
+
+// Gráfico Faturamento
+new Chart(document.getElementById('fatChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Faturamento Anterior', 'Faturamento Atual'],
+        datasets: [{
+            data: [fat_ant, fat_atu],
+            backgroundColor: ['#3498db', '#2ecc71']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 40 } },
+        plugins: {
+            legend: { display: false },
+            datalabels: {
+                anchor: 'end',
+                align: 'end',
+                color: '#000',
+                font: { weight: 'bold', size: 16 },
+                formatter: function(value) {
+                    return 'R$ ' + Number(value).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                }
+            }
+        },
+        scales: {
+            y: { beginAtZero: true, grid: { display: false } },
+            x: { grid: { display: false } }
+        }
+    },
+    plugins: [ChartDataLabels]
+});
+</script>
+
+{% endblock %}

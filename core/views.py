@@ -1,6 +1,6 @@
 from django.utils.datastructures import MultiValueDictKeyError
 from .forms import (SugestaoCompras, SugestaoComprasProgramada, GetSugestaoCompras, FiltroDataForm, ConsultarCusto,
-                    AtualizarCusto)
+                    AtualizarCusto, FiltroPeriodoAnterior)
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from . import functions_compras
@@ -9,7 +9,8 @@ from django.shortcuts import get_object_or_404
 import os
 from django.http import JsonResponse
 from .tasks import atualizar_lista_produtos, tratar_sugestao_de_compras
-from .models import ProdutosCadastradosTiny, ArquivosProcessados, ProdutosAtivosTiny,DataUltimaAtualizacaoCustos
+from .models import ProdutosCadastradosTiny, ArquivosProcessados, ProdutosAtivosTiny, DataUltimaAtualizacaoCustos, \
+    Pedidos
 from datetime import datetime, timezone
 from django.http import HttpResponse
 import openpyxl
@@ -17,6 +18,9 @@ from datetime import date, timedelta
 from . import functions_analise_dados
 from django.contrib import messages
 from django.utils import timezone as ti
+from django.db.models import Max
+from dateutil.relativedelta import relativedelta
+
 
 class GerarSugestaoCompras(FormView):
     template_name = 'sugestao.html'
@@ -260,9 +264,10 @@ class DashboardAndare(FormView):
             marketplace=list(faturamento_mkt.keys()),
             qtd_por_mkt=list(faturamento_mkt.values()),
             top5_sku_vendidos=list(top5_skus_mais_vendidos.keys()),
-            qtd_top5 = list(top5_skus_mais_vendidos.values()),
+            qtd_top5=list(top5_skus_mais_vendidos.values()),
         )
         return self.render_to_response(context)
+
 
 class CurvaABC(FormView):
     template_name = 'curva_abc.html'
@@ -298,6 +303,7 @@ class CurvaABC(FormView):
         )
         return self.render_to_response(context)
 
+
 class Custos(FormView):
     form_class = ConsultarCusto
     template_name = 'custos.html'
@@ -323,6 +329,7 @@ class Custos(FormView):
         else:
             return self.render_to_response({'form': form, 'resultado': 'Não encontrado'})
 
+
 class AtualizarCustos(FormView):
     template_name = "atualizar_custos.html"
     form_class = AtualizarCusto
@@ -345,3 +352,54 @@ class AtualizarCustos(FormView):
         ultima_data.save()
 
         return super().form_valid(form)
+
+
+class PeriodoAnterior(FormView):
+    template_name = 'periodo_anterior.html'
+    form_class = FiltroPeriodoAnterior
+    success_url = reverse_lazy('periodo_anterior')
+
+    def form_valid(self, form):
+        marca = form.cleaned_data.get('Marca')
+        periodo = form.cleaned_data.get('Periodo')
+
+        periodo = int(periodo)
+        # Pegar a ultima data do ultimo resgistro feito de pedido do banco de dados
+        mais_atual = Pedidos.objects.aggregate(Max('data_pedido'))['data_pedido__max']
+        periodo_inicio = mais_atual - relativedelta(months=periodo)
+
+        # Periodo Atual
+        periodo_atual_qtd = functions_analise_dados.quantidade_vendas_do_periodo(periodo_inicio, mais_atual, marca)
+        periodo_atual_fat = functions_analise_dados.faturamento_total(periodo_inicio, mais_atual, marca)
+        # print(periodo_inicio, mais_atual)
+        # print(f"Vendeu: {periodo_atual_qtd} Unds Faturou: R${periodo_atual_fat}")
+
+        periodo_anterior = periodo_inicio - relativedelta(months=periodo)
+
+        # Period Anterior
+        periodo_anterior_qtd = functions_analise_dados.quantidade_vendas_do_periodo(periodo_anterior, periodo_inicio, marca)
+        periodo_anterior_fat = functions_analise_dados.faturamento_total(periodo_anterior, periodo_inicio, marca)
+        # print(periodo_anterior, periodo_inicio)
+        # print(f"Vendeu: {periodo_anterior_qtd} Unds Faturou: R${periodo_anterior_fat}")
+
+        crescimento_qtd = round(((periodo_atual_qtd - periodo_anterior_qtd) / periodo_atual_qtd) * 100, 2)
+        crescimento_fat = round(((periodo_atual_fat - periodo_anterior_fat) / periodo_atual_fat) * 100, 2)
+
+        # print(crescimento_fat, crescimento_qtd)
+        data_ant = datetime(periodo_anterior.year, periodo_anterior.month, periodo_anterior.day).strftime("%d/%m/%Y")
+        data_atu = datetime(periodo_inicio.year, periodo_inicio.month, periodo_inicio.day).strftime("%d/%m/%Y")
+        data_3 = datetime(mais_atual.year, mais_atual.month, mais_atual.day).strftime("%d/%m/%Y")
+
+
+        context = self.get_context_data(
+            form=form,
+            qtd_ant = periodo_anterior_qtd,
+            fat_ant = periodo_anterior_fat,
+            qtd_atu = periodo_atual_qtd,
+            fat_atu = periodo_atual_fat,
+            por_qtd = crescimento_qtd,
+            por_fat = crescimento_fat,
+            dat_ant = data_ant,
+            data_3 = data_3,
+        )
+        return self.render_to_response(context)
