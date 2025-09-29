@@ -1,4 +1,6 @@
 from django import forms
+from django.forms import ChoiceField
+
 from .models import Marca
 from django.utils.safestring import mark_safe
 
@@ -165,6 +167,16 @@ class FiltroDataForm(forms.Form):
         marcas = [(m.nome_marca, m.nome_marca) for m in Marca.objects.all()]
         marcas = [('Todas', 'Todas')] + marcas
         self.fields['Marca'].choices = marcas
+
+Periodos = [
+    (1, 'Último Mês'),
+    (3, 'Último Trimestre'),
+    (6, 'Último Semestre'),
+    (12, 'Último Ano'),
+]
+
+class FiltroPeriodoAnterior(FiltroDataForm):
+    Periodo = ChoiceField(choices=Periodos)
 
 class ConsultarCusto(forms.Form):
     sku_ean_pesquisado = forms.CharField(max_length=50, label='Digite o SKU ou EAN')
