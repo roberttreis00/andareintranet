@@ -253,6 +253,7 @@ class DashboardAndare(FormView):
         ticket_medio = round(faturamento / qtd_pedidos, 2) if qtd_pedidos else 0
         faturamento_mkt = functions_analise_dados.faturamento_por_marketplace(data_inicio, data_fim, marca)
         top5_skus_mais_vendidos = functions_analise_dados.skus_mais_vendido(data_inicio, data_fim, marca)
+        valor_total_frete = functions_analise_dados.custo_frete_total(data_inicio, data_fim, marca)
 
         context = self.get_context_data(
             form=form,
@@ -265,6 +266,8 @@ class DashboardAndare(FormView):
             qtd_por_mkt=list(faturamento_mkt.values()),
             top5_sku_vendidos=list(top5_skus_mais_vendidos.keys()),
             qtd_top5=list(top5_skus_mais_vendidos.values()),
+            frete = valor_total_frete,
+            valor_total = f"{faturamento+valor_total_frete:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
         )
         return self.render_to_response(context)
 

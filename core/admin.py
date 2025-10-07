@@ -21,8 +21,8 @@ class ProdutosAtivosTiny(admin.ModelAdmin):
 
 @admin.register(models.Pedidos)
 class PedidosAdmin(admin.ModelAdmin):
-    list_display = ['id_tiny', 'valor_total', 'situacao', 'sku_vendido', 'marca', 'marketplace', 'data_pedido']
-    search_fields = ['id_tiny', 'valor_total', 'situacao', 'marketplace', 'data_pedido', 'sku_vendido__sku', 'marca__nome_marca']
+    list_display = ['id_tiny', 'valor_total', 'frete', 'situacao', 'sku_vendido', 'marca', 'marketplace', 'data_pedido']
+    search_fields = ['id_tiny', 'situacao', 'marketplace', 'data_pedido', 'sku_vendido__sku', 'marca__nome_marca']
 
 @admin.register(models.DataUltimaAtualizacaoCustos)
 class DataUltimaAtualizacao(admin.ModelAdmin):

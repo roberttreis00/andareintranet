@@ -57,6 +57,7 @@ class ProdutosAtivosTiny(models.Model):
 class Pedidos(models.Model):
     id_tiny = models.CharField(max_length=9)  # Com esse id consigo consultar os skus que vendeu
     valor_total = models.DecimalField(max_digits=8, decimal_places=2)
+    frete = models.DecimalField(max_digits=8, decimal_places=2)
     situacao = models.CharField(max_length=50)  # Aqui posso filtrar e tirar os cancelados
     sku_vendido = models.ForeignKey(ProdutosAtivosTiny, on_delete=models.CASCADE, null=True)
     marketplace = models.CharField(max_length=50)

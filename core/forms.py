@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ChoiceField
 
-from .models import Marca
+from core.models import Marca
 from django.utils.safestring import mark_safe
 
 opcoes = [
