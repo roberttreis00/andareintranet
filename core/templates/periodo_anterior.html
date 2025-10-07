@@ -31,7 +31,7 @@
     <!-- Gráfico Quantidade -->
     <div class="card shadow-sm bg-white rounded p-3" style="width: 550px;">
         <div class="bg-dark text-white p-2 d-flex justify-content-between align-items-center">
-            <span>Quantidade | {{dat_ant}} | {{data_3}}</span>
+            <span>Quantidade | Período {{dat_ant}} até {{data_3}}</span>
             <span style="color: {% if por_qtd >= 0 %}lime{% else %}red{% endif %}; font-weight: bold;">
                 {{ por_qtd|floatformat:2 }}%
             </span>
@@ -42,7 +42,7 @@
 <!-- Gráfico Faturamento -->
 <div class="card shadow-sm bg-white rounded p-3" style="width: 550px;">
     <div class="bg-dark text-white p-2 d-flex justify-content-between align-items-center">
-        <span>Faturamento | {{dat_ant}} | {{data_3}}</span>
+        <span>Faturamento | Período {{dat_ant}} até {{data_3}}</span>
         <span style="color: {% if por_fat >= 0 %}lime{% else %}red{% endif %}; font-weight: bold;">
             {{ por_fat|floatformat:2 }}%
         </span>
@@ -71,7 +71,7 @@ new Chart(document.getElementById('qtdChart'), {
         labels: ['Qtd Anterior', 'Qtd Atual'],
         datasets: [{
             data: [qtd_ant, qtd_atu],
-            backgroundColor: ['#3498db', '#2ecc71']
+            backgroundColor: ['#66B2FF', '#6BBF59']
         }]
     },
     options: {
@@ -105,7 +105,7 @@ new Chart(document.getElementById('fatChart'), {
         labels: ['Faturamento Anterior', 'Faturamento Atual'],
         datasets: [{
             data: [fat_ant, fat_atu],
-            backgroundColor: ['#3498db', '#2ecc71']
+            backgroundColor: ['#66B2FF', '#6BBF59']
         }]
     },
     options: {

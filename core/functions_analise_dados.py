@@ -10,7 +10,6 @@ from collections import defaultdict
 import zipfile
 from bs4 import BeautifulSoup
 
-
 token = "4d907ba2ee45f9e572b9a774badf06f6abde0ae8869c594cb948040ffb4a0544"
 tempo_espera_get = 2  # Tempo de espera até realizar outra requisição ideal da 30 por minuto
 
@@ -111,8 +110,10 @@ def obter_informacoes_pedido(aid):
     skus_vendidos = [venda['item']['codigo'] for venda in response['itens']]
     marketplace = response['ecommerce']['nomeEcommerce']
     valores_unicos = [venda['item']['valor_unitario'] for venda in response['itens']]
+    valor_desconto = response['valor_desconto']
+    frete_produto = response['valor_frete']
 
-    return marketplace, skus_vendidos, valores_unicos
+    return marketplace, skus_vendidos, valores_unicos, valor_desconto, frete_produto
 
 
 def descobrir_marca_sku_por_api(sku_produto):
@@ -166,21 +167,29 @@ def atualizar_pedidos_do_dia(dia, mes, ano):  # executar todos os dias pega pedi
     pedidos = obter_pedidos_do_dia(dia, mes, ano)  # obtem os pedidos do dia desejado
     pedidos_do_dia_zip = zip(pedidos["id"], pedidos["data_pedido"], pedidos["valor"], pedidos["situacao"])
     print('Quantidade de pedidos', len(pedidos["id"]))
+
     for aid, data_pedido, valor, situacao in pedidos_do_dia_zip:
         # Verificar se o pedido já tem no banco de dados
         if Pedidos.objects.filter(id_tiny=aid):  # Aqui quer dizer que já tem
             continue
 
+        if situacao == 'Cancelado':  # Se for nem precisa salvar no banco
+            continue
+
         try:
             skus_mkts = obter_informacoes_pedido(aid)  # Pega o marketplace e os skus vendidos
+
             for sku, valor_venda in zip(skus_mkts[1], skus_mkts[2]):
                 instance = Pedidos()
-
                 instance.id_tiny = aid
-                if len(skus_mkts) > 1:
-                    instance.valor_total = float(valor_venda)
-                else:
-                    instance.valor_total = valor
+                desconto_medio = skus_mkts[3] / len(skus_mkts[1])
+
+                if len(skus_mkts[1]) < 2:
+                    instance.valor_total = float(valor)
+
+                instance.valor_total = float(valor_venda) - desconto_medio
+
+                instance.frete = skus_mkts[4]
                 instance.situacao = situacao
                 instance.data_pedido = datetime.strptime(data_pedido, "%d/%m/%Y").date()
                 # Consultar SKUS Vendidos e Marketplace do PD
@@ -205,6 +214,7 @@ def atualizar_pedidos_do_dia(dia, mes, ano):  # executar todos os dias pega pedi
                 instance.sku_vendido = ProdutosAtivosTiny.objects.filter(sku=sku).first()
                 instance.save()
         except KeyError:
+            print(aid)
             continue  # Quando o pedido não é de nenhum ecommerce
         # Salvar no banco de dados, com todas as informações em mãos
 
@@ -256,12 +266,15 @@ def quantidade_vendas_do_periodo(data_inicio, data_fim, marca):
 def faturamento_total(data_inicio, data_fim, marca):
     pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca)
 
-    if marca == "Todas":
-        faturamento = sum([pedido.valor_total for pedido in pedidos_do_dia])
-        return round(faturamento, 2)
-    else:
-        faturamento = sum([pedido.valor_total for pedido in pedidos_do_dia])
-        return round(faturamento, 2)
+    faturamento = sum([pedido.valor_total for pedido in pedidos_do_dia])
+    return round(faturamento, 2)
+
+
+def custo_frete_total(data_inicio, data_fim, marca):
+    pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca)
+
+    faturamento = sum([pedido.frete for pedido in pedidos_do_dia])
+    return round(faturamento, 2)
 
 
 def faturamento_por_marketplace(data_inicio, data_fim, marca):
