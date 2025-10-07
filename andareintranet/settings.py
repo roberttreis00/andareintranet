@@ -76,32 +76,32 @@ WSGI_APPLICATION = 'andareintranet.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'andareintranet',
-        'USER': 'postgres',
-        'PASSWORD': 'novasenha',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    },
-    'old': {  # conexão para o SQLite antigo
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-}
-}
-
 # DATABASES = {
-#   'default': {
-#     'ENGINE': 'django.db.backends.postgresql',
-#     'NAME': os.environ.get('POSTGRES_DB', 'andareintranet'),
-#     'USER': os.environ.get('POSTGRES_USER', 'postgres'),
-#     'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'g1w61g6q64ggvv6'),
-#     'HOST': os.environ.get('POSTGRES_HOST', 'db'),
-#     'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-#   },
-#   'old': { 'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3' }
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'andareintranet',
+#         'USER': 'postgres',
+#         'PASSWORD': 'novasenha',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     },
+#     'old': {  # conexão para o SQLite antigo
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 # }
+# }
+
+DATABASES = {
+  'default': {
+    'ENGINE': 'django.db.backends.postgresql',
+    'NAME': os.environ.get('POSTGRES_DB', 'andareintranet'),
+    'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+    'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'g1w61g6q64ggvv6'),
+    'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+    'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+  },
+  'old': { 'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3' }
+}
 
 
 AUTH_PASSWORD_VALIDATORS = [
