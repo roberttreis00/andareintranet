@@ -9,6 +9,7 @@ from collections import Counter
 from collections import defaultdict
 import zipfile
 from bs4 import BeautifulSoup
+from django.db.models import Q
 
 token = "4d907ba2ee45f9e572b9a774badf06f6abde0ae8869c594cb948040ffb4a0544"
 tempo_espera_get = 2  # Tempo de espera até realizar outra requisição ideal da 30 por minuto
@@ -365,9 +366,6 @@ def descobrir_ean_sku(sku_produto):
     return ean
 
 
-from django.db.models import Q
-
-
 # Pesquisa o SKU e pega seu respectivo EAN/ Isso pode ser feito por planilha
 def atualizar_eans_dos_skus():
     produtos_sem_ean = ProdutosAtivosTiny.objects.filter(
@@ -381,10 +379,6 @@ def atualizar_eans_dos_skus():
             sku_produto.ean = ean_produto
             sku_produto.save()
             sleep(2)
-
-
-def top10_marcas_que_mais_fatura():
-    ...
 
 
 # Será que tem algum pedido com marca em maiúsculo e ta dando erro?

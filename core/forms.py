@@ -169,10 +169,10 @@ class FiltroDataForm(forms.Form):
         self.fields['Marca'].choices = marcas
 
 Periodos = [
-    (1, 'Último Mês'),
-    (3, 'Último Trimestre'),
-    (6, 'Último Semestre'),
-    (12, 'Último Ano'),
+    (29, 'Último Mês'),
+    (89, 'Último Trimestre'),
+    (179, 'Último Semestre'),
+    (365, 'Último Ano'),
 ]
 
 class FiltroPeriodoAnterior(FiltroDataForm):

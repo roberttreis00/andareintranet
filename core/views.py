@@ -369,28 +369,30 @@ class PeriodoAnterior(FormView):
         periodo = int(periodo)
         # Pegar a ultima data do ultimo resgistro feito de pedido do banco de dados
         mais_atual = Pedidos.objects.aggregate(Max('data_pedido'))['data_pedido__max']
-        periodo_inicio = mais_atual - relativedelta(months=periodo)
+        data_inicio = mais_atual - relativedelta(days=periodo)
 
         # Periodo Atual
-        periodo_atual_qtd = functions_analise_dados.quantidade_vendas_do_periodo(periodo_inicio, mais_atual, marca)
-        periodo_atual_fat = functions_analise_dados.faturamento_total(periodo_inicio, mais_atual, marca)
-        # print(periodo_inicio, mais_atual)
+        periodo_atual_qtd = functions_analise_dados.quantidade_vendas_do_periodo(data_inicio, mais_atual, marca)
+        periodo_atual_fat = functions_analise_dados.faturamento_total(data_inicio, mais_atual, marca)
+        # print(data_inicio, mais_atual)
         # print(f"Vendeu: {periodo_atual_qtd} Unds Faturou: R${periodo_atual_fat}")
 
-        periodo_anterior = periodo_inicio - relativedelta(months=periodo)
+        datafim2 = data_inicio - relativedelta(days=1)
+        data_inicio2 = data_inicio - relativedelta(days=periodo)
 
         # Period Anterior
-        periodo_anterior_qtd = functions_analise_dados.quantidade_vendas_do_periodo(periodo_anterior, periodo_inicio, marca)
-        periodo_anterior_fat = functions_analise_dados.faturamento_total(periodo_anterior, periodo_inicio, marca)
-        # print(periodo_anterior, periodo_inicio)
+        periodo_anterior_qtd = functions_analise_dados.quantidade_vendas_do_periodo(data_inicio2, datafim2, marca)
+        periodo_anterior_fat = functions_analise_dados.faturamento_total(data_inicio2, datafim2, marca)
         # print(f"Vendeu: {periodo_anterior_qtd} Unds Faturou: R${periodo_anterior_fat}")
+
+        # print(data_inicio2, datafim2)
 
         crescimento_qtd = round(((periodo_atual_qtd - periodo_anterior_qtd) / periodo_atual_qtd) * 100, 2)
         crescimento_fat = round(((periodo_atual_fat - periodo_anterior_fat) / periodo_atual_fat) * 100, 2)
 
         # print(crescimento_fat, crescimento_qtd)
-        data_ant = datetime(periodo_anterior.year, periodo_anterior.month, periodo_anterior.day).strftime("%d/%m/%Y")
-        data_atu = datetime(periodo_inicio.year, periodo_inicio.month, periodo_inicio.day).strftime("%d/%m/%Y")
+        data_ant = datetime(data_inicio2.year, data_inicio2.month, data_inicio2.day).strftime("%d/%m/%Y")
+        data_atu = datetime(data_inicio.year, data_inicio.month, data_inicio.day).strftime("%d/%m/%Y")
         data_3 = datetime(mais_atual.year, mais_atual.month, mais_atual.day).strftime("%d/%m/%Y")
 
 
