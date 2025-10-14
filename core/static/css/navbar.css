@@ -22,7 +22,7 @@ body {
 }
 /* Container do gráfico */
 #meuGrafico{
-    width: 400px;   /* largura menor */
+    width: 500px;   /* largura menor */
     height: 400px;  /* altura menor */
     margin: -10px auto; /* centralizado horizontalmente */
     left: 50px;
