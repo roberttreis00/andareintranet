@@ -391,10 +391,13 @@ class PeriodoAnterior(FormView):
         crescimento_fat = round(((periodo_atual_fat - periodo_anterior_fat) / periodo_atual_fat) * 100, 2)
 
         # print(crescimento_fat, crescimento_qtd)
-        data_ant = datetime(data_inicio2.year, data_inicio2.month, data_inicio2.day).strftime("%d/%m/%Y")
-        data_atu = datetime(data_inicio.year, data_inicio.month, data_inicio.day).strftime("%d/%m/%Y")
-        data_3 = datetime(mais_atual.year, mais_atual.month, mais_atual.day).strftime("%d/%m/%Y")
+        data_anterior_1 = datetime(data_inicio2.year, data_inicio2.month, data_inicio2.day).strftime("%d/%m/%Y")
+        data_anterior_2 = datetime(data_inicio.year, data_inicio.month, data_inicio.day).strftime("%d/%m/%Y")
+        data_atual_1 = datetime(mais_atual.year, mais_atual.month, mais_atual.day).strftime("%d/%m/%Y")
+        data_atual_2 = datetime(datafim2.year, datafim2.month, datafim2.day).strftime("%d/%m/%Y")
 
+        print(data_anterior_1, data_anterior_2)
+        print(data_atual_2, data_atual_1)
 
         context = self.get_context_data(
             form=form,
@@ -404,7 +407,7 @@ class PeriodoAnterior(FormView):
             fat_atu = periodo_atual_fat,
             por_qtd = crescimento_qtd,
             por_fat = crescimento_fat,
-            dat_ant = data_ant,
-            data_3 = data_3,
+            dat_ant = data_anterior_1,
+            data_3 = data_atual_1,
         )
         return self.render_to_response(context)
