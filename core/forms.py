@@ -161,6 +161,8 @@ class FiltroDataForm(forms.Form):
 
     Marca = forms.ChoiceField(choices=[], label='Marca')  # inicial vazio
 
+    PlanilhaSaldoTiny = forms.FileField(required=False)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Pega todas as marcas do banco quando o form é instanciado

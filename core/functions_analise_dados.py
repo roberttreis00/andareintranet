@@ -10,6 +10,8 @@ from collections import defaultdict
 import zipfile
 from bs4 import BeautifulSoup
 from django.db.models import Q
+import pandas as pd
+import xlrd
 
 token = "4d907ba2ee45f9e572b9a774badf06f6abde0ae8869c594cb948040ffb4a0544"
 tempo_espera_get = 2.5  # Tempo de espera até realizar outra requisição ideal da 30 por minuto
@@ -307,16 +309,33 @@ def skus_mais_vendido(data_inicio, data_fim, marca):
     return top10
 
 
+def saldo_estoque(planilha_estoque):
+    data = pd.read_excel(xlrd.open_workbook(file_contents=planilha_estoque.read(), ignore_workbook_corruption=True))
+
+    sku_produto = data.iloc[:, 0]
+    saldo_produto = data.iloc[:, 4]
+
+    saldo_skus_pai = defaultdict(int)
+
+    for sku, qtd in zip(sku_produto, saldo_produto):
+        sku_pai = extrair_sku_pai(sku)
+        saldo_skus_pai[sku_pai] += qtd
+
+    return saldo_skus_pai
+
 def curva_abc(data_inicio, data_fim, marca, limite_a=0.7, limite_b=0.9):
     pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca)
 
-    vendas = defaultdict(float)
-    for pedido in pedidos_do_dia:
-        vendas[extrair_sku_pai(str(pedido.sku_vendido))] += float(pedido.valor_total)
+    valor_vendido = defaultdict(float)
+    qtd_vendida = defaultdict(int)
 
-    vendas_abc = dict(sorted(vendas.items(), key=lambda x: x[1], reverse=True))
+    for pedido in pedidos_do_dia:
+        valor_vendido[extrair_sku_pai(str(pedido.sku_vendido))] += float(pedido.valor_total)
+        qtd_vendida[extrair_sku_pai(str(pedido.sku_vendido))] += 1
+
+    vendas_abc = dict(sorted(valor_vendido.items(), key=lambda x: x[1], reverse=True))  # Coloca em ordem do menor para maior
     # -----------------------------------------------------------------------------------------------------------------------
-    total = sum(vendas.values())
+    total = sum(valor_vendido.values())
     acumulado = 0
 
     grupos = {
@@ -338,7 +357,7 @@ def curva_abc(data_inicio, data_fim, marca, limite_a=0.7, limite_b=0.9):
         grupos[grupo]["skus"][sku] = valor
         grupos[grupo]["total"] += valor
 
-    return grupos
+    return grupos, qtd_vendida
 
 
 # -----------------------------------------------------------------------------------------------------------------------

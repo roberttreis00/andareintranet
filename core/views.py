@@ -8,6 +8,8 @@ from django.views import View
 from django.shortcuts import get_object_or_404
 import os
 from django.http import JsonResponse
+
+from .functions_analise_dados import saldo_estoque
 from .tasks import atualizar_lista_produtos, tratar_sugestao_de_compras
 from .models import ProdutosCadastradosTiny, ArquivosProcessados, ProdutosAtivosTiny, DataUltimaAtualizacaoCustos, \
     Pedidos
@@ -289,12 +291,32 @@ class CurvaABC(FormView):
         data_fim = form.cleaned_data.get("data_fim") or date.today()
         marca = form.cleaned_data.get('Marca')
 
-        curva_abc = functions_analise_dados.curva_abc(data_inicio, data_fim, marca)
+        curva_abc_raw = functions_analise_dados.curva_abc(data_inicio, data_fim, marca)
 
-        # Preparar rowspan limitado a 5
-        for categoria, data in curva_abc.items():
-            data['rowspan'] = min(len(data['skus']), 5)
+        # Tentar obter o saldo da planilha, se enviada
+        try:
+            workbook_estoque_tiny = self.request.FILES['PlanilhaSaldoTiny']
+            saldo_skus_pai = functions_analise_dados.saldo_estoque(workbook_estoque_tiny)
+        except MultiValueDictKeyError:
+            saldo_skus_pai = {}
 
+        # Preparar curva_abc processado: cada categoria com lista de (sku, valor, saldo)
+        curva_abc = {}
+        for categoria, data in curva_abc_raw[0].items():
+            skus_5 = list(data['skus'].items())
+            skus_valor_saldo_qtd = [
+                (sku, valor, saldo_skus_pai.get(sku, 0), curva_abc_raw[1].get(sku, 0))
+                for sku, valor in skus_5
+            ]
+
+            # Guarda lista e total
+            curva_abc[categoria] = {
+                'skus_valor_saldo': skus_valor_saldo_qtd,
+                'total': data.get('total', 0),
+                'rowspan': len(skus_valor_saldo_qtd)
+            }
+
+        # Preparar labels e valores para gráfico
         labels = list(curva_abc.keys())
         valores = [round(d["total"], 2) for d in curva_abc.values()]
 
