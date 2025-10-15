@@ -8,31 +8,36 @@
 {% if curva_abc %}
 <div class="dashboard-container">
 
-<!-- Tabela Curva ABC (Top 5 SKUs) -->
-<div class="card" style="width: 600px;">
-    <div class="card-body">
-        <table class="table">
-            <thead>
+    <!-- Tabela Curva ABC (Top 5 SKUs) -->
+    <div class="card" style="width: 600px;">
+        <div class="card-body">
+            <table class="table">
+                <thead>
                 <tr>
                     <th>Categoria</th>
                     <th>SKU</th>
                     <th>Valor</th>
+                    <th>Quantidade vendida</th>
+                    <th>Estoque hoje</th>
                 </tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 {% for categoria, data in curva_abc.items %}
-                    {% for sku, valor in data.skus.items|slice:":5" %}
-                    <tr>
-                        <td>{{ categoria }}</td>
-                        <td>{{ sku }}</td>
-                        <td>{{ valor|floatformat:2 }}</td>
-                    </tr>
-                    {% endfor %}
+                {% for sku, valor, saldo, qtd_vendida in data.skus_valor_saldo %}
+                <tr>
+                    <td>{{ categoria }}</td>
+                    <td>{{ sku }}</td>
+                    <td>{{ valor|floatformat:2 }}</td>
+                    <td>{{ qtd_vendida }}</td>
+                    <td>{{ saldo }}</td>
+                </tr>
                 {% endfor %}
-            </tbody>
-        </table>
+                {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
     </div>
-</div>
 
 
     <!-- Gráfico Curva ABC -->
