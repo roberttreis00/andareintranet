@@ -14,7 +14,7 @@ import pandas as pd
 import xlrd
 
 token = "4d907ba2ee45f9e572b9a774badf06f6abde0ae8869c594cb948040ffb4a0544"
-tempo_espera_get = 2.5  # Tempo de espera até realizar outra requisição ideal da 30 por minuto
+tempo_espera_get = 2.8  # Tempo de espera até realizar outra requisição ideal da 30 por minuto
 
 
 # São 120 Consultados por minutos então uma consulta a cada 0.5 segundos parece que isso na teoria

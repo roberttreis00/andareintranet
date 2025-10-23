@@ -11,7 +11,8 @@
 {% endblock %}
 
 {% block body %}
-{%include 'formulario_filtro_data.html'%}
+{% csrf_token %}
+{%include 'formulario_dash.html'%}
 
 <div class="container-fluid" style="max-width: 1200px;">
     <div class="row g-4 mb-4">

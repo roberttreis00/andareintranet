@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 import os
 from django.http import JsonResponse
 
-from .functions_analise_dados import saldo_estoque
+# from .functions_analise_dados import saldo_estoque
 from .tasks import atualizar_lista_produtos, tratar_sugestao_de_compras
 from .models import ProdutosCadastradosTiny, ArquivosProcessados, ProdutosAtivosTiny, DataUltimaAtualizacaoCustos, \
     Pedidos

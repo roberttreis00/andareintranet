@@ -3,6 +3,7 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block body %}
+{% csrf_token %}
 {% include 'formulario_filtro_data.html' %}
 
 {% if curva_abc %}
