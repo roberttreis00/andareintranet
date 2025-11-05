@@ -323,17 +323,24 @@ def saldo_estoque(planilha_estoque):
 
     return saldo_skus_pai
 
+
 def curva_abc(data_inicio, data_fim, marca, limite_a=0.7, limite_b=0.9):
     pedidos_do_dia = objeto_filtrado(data_inicio, data_fim, marca)
 
     valor_vendido = defaultdict(float)
     qtd_vendida = defaultdict(int)
 
-    for pedido in pedidos_do_dia:
-        valor_vendido[extrair_sku_pai(str(pedido.sku_vendido))] += float(pedido.valor_total)
-        qtd_vendida[extrair_sku_pai(str(pedido.sku_vendido))] += 1
+    if marca == 'aramis':
+        for pedido in pedidos_do_dia:
+            valor_vendido[str(pedido.sku_vendido)] += float(pedido.valor_total)
+            qtd_vendida[str(pedido.sku_vendido)] += 1
+    else:
+        for pedido in pedidos_do_dia:
+            valor_vendido[extrair_sku_pai(str(pedido.sku_vendido))] += float(pedido.valor_total)
+            qtd_vendida[extrair_sku_pai(str(pedido.sku_vendido))] += 1
 
-    vendas_abc = dict(sorted(valor_vendido.items(), key=lambda x: x[1], reverse=True))  # Coloca em ordem do menor para maior
+    vendas_abc = dict(
+        sorted(valor_vendido.items(), key=lambda x: x[1], reverse=True))  # Coloca em ordem do menor para maior
     # -----------------------------------------------------------------------------------------------------------------------
     total = sum(valor_vendido.values())
     acumulado = 0
@@ -432,3 +439,48 @@ def atualizar_custos_produtos(arquivo_zip):
                 p.save()
             except KeyError:
                 continue
+
+
+def custo_produto(sku_desejado):
+    try:
+        # Quer dizer que é por SKU
+        produto = ProdutosAtivosTiny.objects.get(sku=sku_desejado.upper())
+        custo = produto.custo
+    except ProdutosAtivosTiny.DoesNotExist:
+        produto = False
+
+    if produto:
+        return float(custo)
+    else:
+        return 0
+
+
+# Salva o custo no banco em cada pedido
+def calcular_lucro_liquido(data_inicio, data_fim, marca, taxa_mkt, taxa_fixa):
+    pedidos_filtrado = objeto_filtrado(data_inicio, data_fim, marca)
+    pedidos_marketplace = [pd for pd in pedidos_filtrado if pd.marketplace == 'Shopee' and pd.situacao != 'Cancelado']
+
+    pedidos_nao_calculados = []  # Por não ter o custo ou sku
+    lucro_periodo = 0
+
+    # Realizar o calculo
+    for pedido in pedidos_marketplace:
+        sku = str(pedido.sku_vendido)
+        if sku:
+            valor_total = float(pedido.valor_total)
+            custo = pedido.sku_vendido
+
+            if custo:
+                custo = custo_produto(sku)
+                imposto = valor_total * 0.12
+                taxa = valor_total * taxa_mkt
+
+                # calcular lucro
+                lucro = valor_total - (custo + imposto + taxa + taxa_fixa)
+                lucro_periodo += lucro
+            else:
+                pedidos_nao_calculados.append(pedido)
+        else:
+            pedidos_nao_calculados.append(pedido)
+
+    return lucro_periodo, pedidos_nao_calculados
