@@ -10,6 +10,7 @@ urlpatterns = [
     path('custos/', views.Custos.as_view(), name='custos'),
     path('atualizar_custos/', views.AtualizarCustos.as_view(), name='atualizar_custos'),
     path('periodo_anterior/', views.PeriodoAnterior.as_view(), name='periodo_anterior'),
+    path('lucro_liquido/', views.LucroLiquido.as_view(), name='lucro_liquido'),
 
     path('task-status/<int:task_id>/', views.TaskStatusView.as_view(), name='task_status'),
     path('download/<int:task_id>/', views.DownloadFileView.as_view(), name='download_file'),

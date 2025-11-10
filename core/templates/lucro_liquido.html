@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+{%block style%}
+    <style>
+        /* Oculta o rodapé */
+    footer {
+        display: none;
+    }
+    </style>
+{% endblock %}
+
+{% block body %}
+{% csrf_token %}
+<form method="post" enctype="multipart/form-data" class="row g-3 justify-content-center align-items-end filter-form">
+    {% csrf_token %}
+    <div class="col-auto">
+        <label for="id_data_inicio" class="form-label text-muted">Data Início</label>
+        {{ form.data_inicio }}
+    </div>
+    <div class="col-auto">
+        <label for="id_data_fim" class="form-label text-muted">Data Fim</label>
+        {{ form.data_fim }}
+    </div>
+    <div class="col-auto">
+        <label class="text-muted">Marketplace</label>
+        {{ form.marketplace }}
+    </div>
+    <div class="col-auto">
+        <label class="text-muted">Taxa %</label>
+        {{ form.taxa_marketplace }}
+    </div>
+    <div class="col-auto">
+        <label class="text-muted">Taxa Fixa R$</label>
+        {{ form.taxa_fixa }}
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Calcular</button>
+    </div>
+</form>
+
+<div class="container-fluid" style="max-width: 1200px;">
+    <div class="row g-4 mb-4">
+        <!-- Card Faturamento -->
+        <div class="col-md-4 col-sm-12">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2>Faturamento</h2>
+                    <p>R${{ faturamento|default:"0,00" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Lucro Líquido -->
+        <div class="col-md-4 col-sm-12">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2>Lucro Líquido</h2>
+                    <p>R${{ lucro_liquido|default:"0,00" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card %Lucro -->
+        <div class="col-md-4 col-sm-12">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2>%</h2>
+                    <p>{{ lucro_por_cem|default:"0" }}%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock%}
+

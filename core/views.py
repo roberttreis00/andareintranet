@@ -1,6 +1,6 @@
 from django.utils.datastructures import MultiValueDictKeyError
 from .forms import (SugestaoCompras, SugestaoComprasProgramada, GetSugestaoCompras, FiltroDataForm, ConsultarCusto,
-                    AtualizarCusto, FiltroPeriodoAnterior)
+                    AtualizarCusto, FiltroPeriodoAnterior, FiltroLucroLiquido)
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from . import functions_compras
@@ -432,4 +432,32 @@ class PeriodoAnterior(FormView):
             dat_ant = data_anterior_1,
             data_3 = data_atual_1,
         )
+        return self.render_to_response(context)
+
+import locale
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
+class LucroLiquido(FormView):
+    template_name = 'lucro_liquido.html'
+    form_class = FiltroLucroLiquido
+    success_url = reverse_lazy('lucro_liquido')
+
+    def form_valid(self, form):
+        data_inicio = form.cleaned_data.get("data_inicio")
+        data_fim = form.cleaned_data.get("data_fim")
+        taxa_mkt = form.cleaned_data.get("taxa_marketplace")
+        taxa_fixa = form.cleaned_data.get("taxa_fixa")
+        mkt = form.cleaned_data.get("marketplace")
+
+        data = functions_analise_dados.calcular_lucro_liquido(data_inicio, data_fim, taxa_mkt, taxa_fixa, mkt)
+
+        porcentagem_lucro = round((data[0] / data[1]) * 100, 2)
+
+        context = self.get_context_data(
+            form=form,
+            faturamento=locale.format_string('%.2f', data[1], grouping=True),
+            lucro_liquido=locale.format_string('%.2f', data[0], grouping=True),
+            lucro_por_cem = porcentagem_lucro
+        )
+
         return self.render_to_response(context)

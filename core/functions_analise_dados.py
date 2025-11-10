@@ -456,12 +456,16 @@ def custo_produto(sku_desejado):
 
 
 # Salva o custo no banco em cada pedido
-def calcular_lucro_liquido(data_inicio, data_fim, marca, taxa_mkt, taxa_fixa):
-    pedidos_filtrado = objeto_filtrado(data_inicio, data_fim, marca)
-    pedidos_marketplace = [pd for pd in pedidos_filtrado if pd.marketplace == 'Shopee' and pd.situacao != 'Cancelado']
+def calcular_lucro_liquido(data_inicio, data_fim, taxa_mkt, taxa_fixa, marketplace):
+    taxa_mkt = float(taxa_mkt) / 100
+    taxa_fixa = float(taxa_fixa)
 
-    pedidos_nao_calculados = []  # Por não ter o custo ou sku
+    pedidos_filtrado = objeto_filtrado(data_inicio, data_fim, "Todas")
+    pedidos_marketplace = [pd for pd in pedidos_filtrado if pd.marketplace == marketplace and pd.situacao != 'Cancelado']
+
+    pedidos_nao_calculados = []  # Por não ter o custo ou sku = Pedidos sem o custo
     lucro_periodo = 0
+    faturamento = 0
 
     # Realizar o calculo
     for pedido in pedidos_marketplace:
@@ -478,9 +482,10 @@ def calcular_lucro_liquido(data_inicio, data_fim, marca, taxa_mkt, taxa_fixa):
                 # calcular lucro
                 lucro = valor_total - (custo + imposto + taxa + taxa_fixa)
                 lucro_periodo += lucro
+                faturamento += valor_total
             else:
                 pedidos_nao_calculados.append(pedido)
         else:
             pedidos_nao_calculados.append(pedido)
 
-    return lucro_periodo, pedidos_nao_calculados
+    return lucro_periodo, faturamento

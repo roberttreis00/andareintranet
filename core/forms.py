@@ -15,6 +15,7 @@ opcoes2 = [
     ('2', 'Programada'),
 ]
 
+
 # logo_mercado_e_full = ('<img src="/static/images/logoML.png" style="height:20px; vertical-align:middle; margin-right:5px;">'
 #                        '<img src="/static/images/logoFull.png" style="height:20px; vertical-align:middle; margin-right:5px;">')
 
@@ -61,13 +62,15 @@ class SugestaoCompras(forms.Form):
 
     def clean_PlanilhaRelatorioDeVendas(self):
         return self.validar_arquivos_excel(
-            self.cleaned_data['PlanilhaRelatorioDeVendas'], 'Planilha Relatorio De Vendas', '.xls', 'relatorio-de-vendas'
+            self.cleaned_data['PlanilhaRelatorioDeVendas'], 'Planilha Relatorio De Vendas', '.xls',
+            'relatorio-de-vendas'
         )
 
     def clean_PlanilhaOrdemDeCompras(self):
         return self.validar_arquivos_excel(
             self.cleaned_data['PlanilhaOrdemDeCompras'], 'Planilha Ordens de Compras', '.xls', 'pedidos_compra'
         )
+
 
 class SugestaoComprasProgramada(forms.Form):
     PlanilhaEstoqueFull = forms.FileField(label='Planilha Saldo Estoque Full')
@@ -120,6 +123,7 @@ class SugestaoComprasProgramada(forms.Form):
             self.cleaned_data['PlanilhaRelatorioDeVendas2'], 'Planilha Relatorio De Vendas 2°', '.xls',
             'relatorio-de-vendas'
         )
+
     def clean_PlanilhaRelatorioDeVendasSemestreAtual(self):
         return self.validar_arquivos_excel(
             self.cleaned_data['PlanilhaRelatorioDeVendasSemestreAtual'], 'Planilha Relatorio De Vendas Semestre Atual',
@@ -131,10 +135,12 @@ class SugestaoComprasProgramada(forms.Form):
             self.cleaned_data['PlanilhaOrdemDeCompras'], 'Planilha Ordens de Compras', '.xls', 'pedidos_compra'
         )
 
+
 class GetSugestaoCompras(forms.Form):
     PlanilhaSugestaoCompras = forms.FileField(label='Planilha Sugestão Compra')
     Fornecedor = forms.CharField(max_length=50, label='Fornecedor')
     Situacao_compra = forms.ChoiceField(choices=opcoes2, widget=forms.Select, label='Situação da Compra')
+
 
 opcoes3 = [
     ('1', 'Em aberto'),
@@ -148,6 +154,7 @@ opcoes3 = [
     ('9', 'Dados incompletos'),
     ('10', 'Cancelado'),
 ]
+
 
 class FiltroDataForm(forms.Form):
     data_inicio = forms.DateField(
@@ -170,6 +177,7 @@ class FiltroDataForm(forms.Form):
         marcas = [('Todas', 'Todas')] + marcas
         self.fields['Marca'].choices = marcas
 
+
 Periodos = [
     (29, 'Último Mês'),
     (89, 'Último Trimestre'),
@@ -177,11 +185,32 @@ Periodos = [
     (365, 'Último Ano'),
 ]
 
+marketplaces = [
+    ('Amazon', 'Amazon'),
+    ('Magazine Luiza', 'Magazine Luiza'),
+    ('Mercado Livre', 'Mercado Livre'),
+    ('Mercado Livre Fulfillment', 'Mercado Livre Full'),
+    ('Netshoes', 'Netshoes'),
+    ('Nuvemshop', 'Loja Nuvemshop'),
+    ('Shein', 'Shein'),
+    ('Shopee', 'Shopee'),
+]
+
+
 class FiltroPeriodoAnterior(FiltroDataForm):
     Periodo = ChoiceField(choices=Periodos)
+
 
 class ConsultarCusto(forms.Form):
     sku_ean_pesquisado = forms.CharField(max_length=50, label='Digite o SKU ou EAN')
 
+
 class AtualizarCusto(forms.Form):
     arquivo_zip_nfs = forms.FileField(label='Arquivo Zipado com os .xml')
+
+
+class FiltroLucroLiquido(FiltroDataForm):
+    taxa_marketplace = forms.CharField(max_length=3, label='Taxa Mkt')
+    taxa_fixa = forms.CharField(max_length=3, label='Taxa Fixa')
+    marketplace = forms.ChoiceField(choices=marketplaces, label='MKT')
+    Marca = forms.ChoiceField(choices=[], label='Marca', required=False)
