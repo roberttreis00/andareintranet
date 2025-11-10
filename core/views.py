@@ -448,7 +448,7 @@ class LucroLiquido(FormView):
         taxa_mkt = form.cleaned_data.get("taxa_marketplace")
         taxa_fixa = form.cleaned_data.get("taxa_fixa")
         mkt = form.cleaned_data.get("marketplace")
-
+        # print(data_inicio, data_fim, taxa_mkt, taxa_fixa, mkt)
         data = functions_analise_dados.calcular_lucro_liquido(data_inicio, data_fim, taxa_mkt, taxa_fixa, mkt)
 
         porcentagem_lucro = round((data[0] / data[1]) * 100, 2)

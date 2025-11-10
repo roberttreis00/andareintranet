@@ -209,8 +209,15 @@ class AtualizarCusto(forms.Form):
     arquivo_zip_nfs = forms.FileField(label='Arquivo Zipado com os .xml')
 
 
-class FiltroLucroLiquido(FiltroDataForm):
+class FiltroLucroLiquido(forms.Form):
+    data_inicio = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    data_fim = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
     taxa_marketplace = forms.CharField(max_length=3, label='Taxa Mkt')
     taxa_fixa = forms.CharField(max_length=3, label='Taxa Fixa')
     marketplace = forms.ChoiceField(choices=marketplaces, label='MKT')
-    Marca = forms.ChoiceField(choices=[], label='Marca', required=False)
