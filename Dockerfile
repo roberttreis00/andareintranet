@@ -34,4 +34,4 @@ RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Instala netcat (usado em scripts de healthcheck/startup)
-RUN apt-get update && apt-get install -y netcat-open
+RUN apt-get update && apt-get install -y netcat-openbsd
