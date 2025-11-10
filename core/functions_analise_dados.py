@@ -452,7 +452,7 @@ def custo_produto(sku_desejado):
     if produto:
         return float(custo)
     else:
-        return 0
+        return None
 
 
 # Salva o custo no banco em cada pedido
