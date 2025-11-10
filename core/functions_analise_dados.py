@@ -441,18 +441,17 @@ def atualizar_custos_produtos(arquivo_zip):
                 continue
 
 
-def custo_produto(sku_desejado):
+def custo_produto(sku_desejado: str):
     try:
-        # Quer dizer que é por SKU
-        produto = ProdutosAtivosTiny.objects.get(sku=sku_desejado.upper())
+        produto = ProdutosAtivosTiny.objects.get(sku=sku_desejado.strip().upper())
         custo = produto.custo
+        return float(custo) if custo is not None else None
     except ProdutosAtivosTiny.DoesNotExist:
-        produto = False
-
-    if produto:
-        return float(custo)
-    else:
         return None
+    except (ValueError, TypeError):
+        # Caso o custo não possa ser convertido para float
+        return None
+
 
 
 # Salva o custo no banco em cada pedido
