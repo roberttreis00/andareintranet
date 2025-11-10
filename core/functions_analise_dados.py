@@ -476,16 +476,22 @@ def calcular_lucro_liquido(data_inicio, data_fim, taxa_mkt, taxa_fixa, marketpla
 
             if custo:
                 custo = custo_produto(sku)
-                imposto = valor_total * 0.12
-                taxa = valor_total * taxa_mkt
+                if custo:
+                    imposto = valor_total * 0.12
+                    taxa = valor_total * taxa_mkt
 
-                # calcular lucro
-                lucro = valor_total - (custo + imposto + taxa + taxa_fixa)
-                lucro_periodo += lucro
-                faturamento += valor_total
+                    # calcular lucro
+                    lucro = valor_total - (custo + imposto + taxa + taxa_fixa)
+                    lucro_periodo += lucro
+                    faturamento += valor_total
+                else:
+                    pedidos_nao_calculados.append(pedido)
+                    continue
             else:
                 pedidos_nao_calculados.append(pedido)
+                continue
         else:
             pedidos_nao_calculados.append(pedido)
+            continue
 
     return lucro_periodo, faturamento
