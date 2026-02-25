@@ -12,6 +12,8 @@ from bs4 import BeautifulSoup
 from django.db.models import Q
 import pandas as pd
 import xlrd
+from core.Custos_Produtos import ProdutoAndare
+from sympy import symbols, Eq, solve
 
 token = "4d907ba2ee45f9e572b9a774badf06f6abde0ae8869c594cb948040ffb4a0544"
 tempo_espera_get = 2.8  # Tempo de espera até realizar outra requisição ideal da 30 por minuto
@@ -453,14 +455,14 @@ def custo_produto(sku_desejado: str):
         return None
 
 
-
 # Salva o custo no banco em cada pedido
 def calcular_lucro_liquido(data_inicio, data_fim, taxa_mkt, taxa_fixa, marketplace):
     taxa_mkt = float(taxa_mkt) / 100
     taxa_fixa = float(taxa_fixa)
 
     pedidos_filtrado = objeto_filtrado(data_inicio, data_fim, "Todas")
-    pedidos_marketplace = [pd for pd in pedidos_filtrado if pd.marketplace == marketplace and pd.situacao != 'Cancelado']
+    pedidos_marketplace = [pd for pd in pedidos_filtrado if
+                           pd.marketplace == marketplace and pd.situacao != 'Cancelado']
 
     pedidos_nao_calculados = []  # Por não ter o custo ou sku = Pedidos sem o custo
     lucro_periodo = 0
@@ -494,3 +496,73 @@ def calcular_lucro_liquido(data_inicio, data_fim, taxa_mkt, taxa_fixa, marketpla
             continue
     print(len(pedidos_nao_calculados))
     return lucro_periodo, faturamento
+
+
+def preco_futuro(custo, txmkt, txfixa, margem, rebaixa=0):
+    preco = symbols('preco')
+    lucro_esperado = margem * preco
+    equacao = Eq(lucro_esperado,
+                 preco - ((preco * (txmkt - (rebaixa / 100))) + txfixa) - (preco * 0.12) - custo)
+
+    preco_venda = float(solve(equacao, preco)[0]) / 1
+    # print(desconto_medio)
+    return preco_venda
+
+
+def calculo_pv(sku_pai, margem):
+    custo = ProdutoAndare.get(sku_pai, "PRODUTO NÂO ENCONTRADO")
+    taxa_mkt = 0.14
+    margem = margem / 100
+
+    if custo != "PRODUTO NÂO ENCONTRADO":
+        # 1° Faixa 0 a 18,99
+        pv = preco_futuro(custo, taxa_mkt, 6.15, margem)
+
+        if pv < 18.99:
+            return round(pv, 2), custo
+
+        # 2° Faixa 19 a 48,99
+        pv = preco_futuro(custo, taxa_mkt, 6.85, margem)
+
+        if 19 < pv < 48.99:
+            return round(pv, 2), custo
+
+        # 3° Faixa 49 a 78,99
+        pv = preco_futuro(custo, taxa_mkt, 8.05, margem)
+
+        if 49 < pv < 78.99:
+            return round(pv, 2), custo
+
+        # 4° Faixa 79 a 99,99
+        pv = preco_futuro(custo, taxa_mkt, 14.15, margem)
+
+        if 79 < pv < 99.99:
+            return round(pv, 2), custo
+
+        # 5° Faixa 100 a 119,99
+        pv = preco_futuro(custo, taxa_mkt, 16.45, margem)
+
+        if 100 < pv < 119.99:
+            return round(pv, 2), custo
+
+        # 6° Faixa 120 a 149,99
+        pv = preco_futuro(custo, taxa_mkt, 18.85, margem)
+
+        if 120 < pv < 149.99:
+            return round(pv, 2), custo
+
+        # 7° Faixa 150 a 199.99
+        pv = preco_futuro(custo, taxa_mkt, 21.15, margem)
+
+        if 150 < pv < 199.99:
+            return round(pv, 2), custo
+
+        # 8° Faixa apartir de 200
+        pv = preco_futuro(custo, taxa_mkt, 24.65, margem)
+
+        if pv > 200:
+            return round(pv, 2), custo
+        return "PRODUTO NÂO ENCONTRADO"
+
+    else:
+        return "PRODUTO NÂO ENCONTRADO"

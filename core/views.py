@@ -1,6 +1,6 @@
 from django.utils.datastructures import MultiValueDictKeyError
 from .forms import (SugestaoCompras, SugestaoComprasProgramada, GetSugestaoCompras, FiltroDataForm, ConsultarCusto,
-                    AtualizarCusto, FiltroPeriodoAnterior, FiltroLucroLiquido)
+                    AtualizarCusto, FiltroPeriodoAnterior, FiltroLucroLiquido, ConsultarPV)
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from . import functions_compras
@@ -22,6 +22,7 @@ from django.contrib import messages
 from django.utils import timezone as ti
 from django.db.models import Max
 from dateutil.relativedelta import relativedelta
+from core.functions_analise_dados import calculo_pv, preco_futuro
 
 
 class GerarSugestaoCompras(FormView):
@@ -460,4 +461,29 @@ class LucroLiquido(FormView):
             lucro_por_cem = porcentagem_lucro
         )
 
+        return self.render_to_response(context)
+
+
+class ConsultarPVML(FormView):
+    template_name = 'consultar_pv.html'
+    form_class = ConsultarPV
+    success_url = reverse_lazy('consultar_pv')
+
+    def form_valid(self, form):
+        sku_pai = form.cleaned_data.get("SKU_pai")
+        margem = form.cleaned_data.get("margem_desejada")
+
+        pv = calculo_pv(sku_pai, margem)
+        if pv != "PRODUTO NÂO ENCONTRADO":
+            context = self.get_context_data(
+                form=form,
+                preco_venda = pv[0],
+                custo = pv[1]
+            )
+        else:
+            context = self.get_context_data(
+                form=form,
+                preco_venda=False,
+                custo=""
+            )
         return self.render_to_response(context)

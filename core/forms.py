@@ -221,3 +221,8 @@ class FiltroLucroLiquido(forms.Form):
     taxa_marketplace = forms.CharField(max_length=3, label='Taxa Mkt')
     taxa_fixa = forms.CharField(max_length=3, label='Taxa Fixa')
     marketplace = forms.ChoiceField(choices=marketplaces, label='MKT')
+
+
+class ConsultarPV(forms.Form):
+    SKU_pai = forms.CharField(max_length=40, label='SKU PAI')
+    margem_desejada = forms.DecimalField(max_digits=9, decimal_places=2, label='Margem desejada (%)')

@@ -1,3 +1,5 @@
+from tkinter.font import names
+
 from django.urls import path
 from . import views
 
@@ -11,6 +13,7 @@ urlpatterns = [
     path('atualizar_custos/', views.AtualizarCustos.as_view(), name='atualizar_custos'),
     path('periodo_anterior/', views.PeriodoAnterior.as_view(), name='periodo_anterior'),
     path('lucro_liquido/', views.LucroLiquido.as_view(), name='lucro_liquido'),
+    path('consultar_pv/', views.ConsultarPVML.as_view(), name='consultar_pv'),
 
     path('task-status/<int:task_id>/', views.TaskStatusView.as_view(), name='task_status'),
     path('download/<int:task_id>/', views.DownloadFileView.as_view(), name='download_file'),
