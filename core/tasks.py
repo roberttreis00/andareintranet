@@ -20,12 +20,16 @@ def atualizar_lista_produtos(self):
     marcas = get_marca()
 
     ProdutosAtivos = {marca: [] for marca in marcas}  # Pega a lista de marca e faz um dict assim {marca: []}
+    ProdutosExcluidos = {marca: [] for marca in marcas}
     ProdutosAtivosExcluidos = {marca: [] for marca in marcas}
 
     # Pesquisa na API todos os produtos
     for marca in ProdutosAtivos.keys():
         sleep(0.5)
-        ProdutosAtivos[marca] = pesquisar_marca_get_all(marca)
+        try:
+            ProdutosAtivos[marca] = pesquisar_marca_get_all(marca, 'A')
+        except KeyError:
+            continue
         sleep(0.5)
 
     # Salva no banco de Dados os Produtos Ativos
@@ -33,6 +37,22 @@ def atualizar_lista_produtos(self):
     produtos.Lista_Produtos = ProdutosAtivos
     produtos.save()
     print('Produtos Ativos atualizado salvo com Sucesso!')
+
+    # Produtos Excluidos
+    # Pesquisa na API todos os produtos
+    for marca in ProdutosExcluidos.keys():
+        sleep(0.5)
+        try:
+            ProdutosExcluidos[marca] = pesquisar_marca_get_all(marca, 'E')
+        except KeyError:
+            continue
+        sleep(0.5)
+
+    # Salva no banco de Dados os Produtos Ativos
+    produtos = ProdutosCadastradosTiny.objects.get(Nome_Lista_Produtos='Produtos Excluidos')
+    produtos.Lista_Produtos = ProdutosExcluidos
+    produtos.save()
+    print('Produtos Excluidos atualizado salvo com Sucesso!')
 
     # Now Juntar os Ativos com os Excluidos
     produtos_ativos_bd = ProdutosCadastradosTiny.objects.get(Nome_Lista_Produtos='Produtos Ativos').Lista_Produtos

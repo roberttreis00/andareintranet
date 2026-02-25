@@ -484,13 +484,13 @@ def calcular_lucro_liquido(data_inicio, data_fim, taxa_mkt, taxa_fixa, marketpla
                     lucro_periodo += lucro
                     faturamento += valor_total
                 else:
-                    pedidos_nao_calculados.append(pedido)
+                    pedidos_nao_calculados.append(pedido.id_tiny)
                     continue
             else:
-                pedidos_nao_calculados.append(pedido)
+                pedidos_nao_calculados.append(pedido.id_tiny)
                 continue
         else:
-            pedidos_nao_calculados.append(pedido)
+            pedidos_nao_calculados.append(pedido.id_tiny)
             continue
-
+    print(len(pedidos_nao_calculados))
     return lucro_periodo, faturamento

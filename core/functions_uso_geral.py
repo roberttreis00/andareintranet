@@ -24,7 +24,7 @@ def numero_paginas_atual(search_marca):
     return numero_paginas
 
 # Pesquisa na API do Tiny a MARCA e retorna todos os SKUS em uma lista/ Pega tanto sku pai quanto filho
-def pesquisar_marca_get_all(search_marca):
+def pesquisar_marca_get_all(search_marca, situacao):
     qtd_pgs = numero_paginas_atual(search_marca)
     data = []
 
@@ -34,6 +34,7 @@ def pesquisar_marca_get_all(search_marca):
             'formato': 'json',
             'pesquisa': search_marca,
             'pagina': pg,
+            'situacao': situacao,
         }
 
         response = requests.get(url_api, params=params).json()['retorno']['produtos']
