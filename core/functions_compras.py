@@ -56,10 +56,10 @@ def gerar_sugestao_compras(estoque_full, estoque_tiny, relatorio_vendas, ordens_
         saldo_estoque_disponivel[x] = y
 # ----------------------------------------------------------------------------------------------------------------------
     # GET Dados saldo estoque Full
-    df_estoque_full = pd.read_excel(path_estoque_full)
+    df_estoque_full = pd.read_excel(path_estoque_full, sheet_name='Resumo')
 
     coluna_sku2 = df_estoque_full.iloc[14:, 3]
-    coluna_saldo_estoque_full = df_estoque_full.iloc[14:, 20]
+    coluna_saldo_estoque_full = df_estoque_full.iloc[14:, 16]
     saldo_estoque_full = dict()
 
     for x, y in zip(coluna_sku2, coluna_saldo_estoque_full):

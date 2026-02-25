@@ -46,6 +46,10 @@ def pesquisar_marca_get_all(search_marca, situacao):
 
 # Função que extrair o sku pai do sku filho passado
 def extrair_sku_pai(sku_filho):
+    if 'aramis' in sku_filho.lower():
+        opcao4 = re.match(r"^(.*?)(?=ARAMIS)", sku_filho)
+        return opcao4.group(1)
+
     """Extrai o agrupador do código do produto, removendo cor/tamanho."""
     opcao1 = re.match(r"^([A-Za-z0-9]*?)(C.*)?$", sku_filho)  # Separa por C
     opcao2 = re.match(r"^([A-Za-z0-9]+?)([A-Z]+.*)?$", sku_filho)  # Separa por NOME da COR
