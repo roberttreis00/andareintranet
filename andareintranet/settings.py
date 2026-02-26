@@ -28,6 +28,11 @@ DEBUG = True
 # ALLOWED_HOSTS = ['*']
 ALLOWED_HOSTS = ['andareintranet.com', 'www.andareintranet.com'] # ou o dominio
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://andareintranet.com",
+    "https://www.andareintranet.com",
+]
+
 # Application definition
 
 INSTALLED_APPS = [
